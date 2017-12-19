@@ -2,5 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="stanford-corenlp-3.8.0-models.jar"/>
+	<classpathentry kind="lib" path="stanford-corenlp-3.8.0.jar"/>
+	<classpathentry kind="lib" path="ejml-0.23.jar"/>
+	<classpathentry kind="lib" path="jollyday.jar"/>
+	<classpathentry kind="lib" path="protobuf.jar"/>
+	<classpathentry kind="lib" path="xom.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

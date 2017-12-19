@@ -1,4 +1,0 @@
-The Z shell (Zsh) is a Unix shell that can be used as an interactive login shell and as a powerful command interpreter for shell scripting. Zsh is an extended Bourne shell with a large number of improvements, including some features of Bash, ksh, and tcsh.
-Paul Falstad wrote the first version of Zsh in 1990 while a student at Princeton University. The name "zsh" derives from the name of Yale professor Zhong Shao (then an Assistant Professor at Princeton University) — Paul Falstad regarded Shao's login-id, "zsh", as a good name for a shell.
-Features include:
-A user community website called "Oh My Zsh" collects third-party plug-ins and themes for the Z shell. As of 2017, their GitHub repository has over contributors, over 200 plug-ins, and over 140 themes. It also comes with an auto-update tool that makes it easier to keep installed plug-ins and themes updated.

@@ -14,7 +14,7 @@ public class WikipediaExtractor {
 	private static final String START_TOKEN = "<doc";
 	private static final String END_TOKEN = "</doc>";
 
-	private static String inputFolder = "Input";
+	private static String inputFolder = "Test";
 	private static String outputFolder = "Output";
 
 	private static int process = 0;
@@ -64,33 +64,32 @@ public class WikipediaExtractor {
 					while ((line = reader.readLine()) != null) {
 						if (!line.equals("")) {
 							if (isStartLine(line)) {
-								name = reader.readLine();
 								if (readContent) {
-									System.out.println("Missing end line: " + line + " in document: " + f.getName());
+									System.out.println("\nMissing end line: " + line + " in document: " + f.getAbsolutePath());
 									name = "";
 									content.clear();
-								} else {
-									readContent = true;
 								}
+
+								do {
+									name = reader.readLine();
+								} while (name.equals(""));
+								readContent = true;
 							} else if (isEndLine(line)) {
-								writeFile(name, content);
-								name = "";
-								content.clear();
 								if (readContent) {
 									readContent = false;
+									writeFile(name, content);
 								} else {
-									System.out.println("Missing start line: " + line + " in document: " + f.getName());
-									name = "";
-									content.clear();
+									System.out.println("\nMissing start line: " + line + " in document: " + f.getAbsolutePath());
 								}
-							} else {
+								name = "";
+								content.clear();
+							} else if (readContent) {
 								content.add(line + "\n");
-								if (!readContent) {
-									System.out.println("Missing start line: " + line + " in document: " + f.getName());
-									name = "";
-									content.clear();
-								}
+							} else {
+								name = "";
+								content.clear();
 							}
+
 						}
 					}
 				} catch (Exception e) {
@@ -108,6 +107,7 @@ public class WikipediaExtractor {
 				}
 			}
 		}
+
 	}
 
 	private static boolean isStartLine(String line) {
