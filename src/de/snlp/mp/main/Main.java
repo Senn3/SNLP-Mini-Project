@@ -5,9 +5,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
+
 import edu.stanford.nlp.io.IOUtils;
+import edu.stanford.nlp.io.RuntimeIOException;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
@@ -16,11 +20,9 @@ public class Main extends StanfordCoreNLP {
 	private static final String corpus = "Wikipedia Corpus";
 
 	private static StanfordCoreNLP pipeline;
-	
+
 	/*
-	 * Wichtige Links:
-	 * https://stanfordnlp.github.io/CoreNLP/
-	 * http://universaldependencies.org/introduction.html
+	 * Wichtige Links: https://stanfordnlp.github.io/CoreNLP/ http://universaldependencies.org/introduction.html
 	 */
 
 	public static void main(String[] args) throws IOException {
@@ -29,14 +31,39 @@ public class Main extends StanfordCoreNLP {
 			System.out.println("Cannot find the folder: " + folder.getAbsolutePath());
 			return;
 		}
+		donwloadModel();
 		initStandFordLib();
 		goThroughCorpus(folder);
 	}
 
+	private static void donwloadModel() {
+		File file = new File("stanford-english-corenlp-models.jar");
+		try {
+			if (!file.exists()) {
+				System.out.println("Download the model file for the english language.");
+				URL url = new URL("https://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar");
+				FileUtils.copyURLToFile(url, file);
+				System.out.println("Download finish. Add the .jar file to the build path.");
+				System.exit(1);
+			}
+		} catch (IOException e) {
+			System.out.println("Download failed. Exit program.");
+			if (file.exists())
+				file.delete();
+			System.exit(255);
+			e.printStackTrace();
+		}
+	}
+
 	private static void initStandFordLib() {
-		Properties props = new Properties();
-		props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref, relation");
-		pipeline = new StanfordCoreNLP(props);
+		try {
+			Properties props = new Properties();
+			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref, relation");
+			pipeline = new StanfordCoreNLP(props);
+		} catch (RuntimeIOException e) {
+			System.out.println("Can't find the model file. Add the \"stanford-english-corenlp-models.jar\" file to the build path and refresh the project.");
+			System.exit(255);
+		}
 	}
 
 	private static void goThroughCorpus(File folder) {
