@@ -6,7 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,9 @@ import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import de.snlp.mp.model.TextModel;
 import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.io.RuntimeIOException;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -52,12 +56,22 @@ public class Main extends StanfordCoreNLP {
 		if (!processedDocsFile.exists())
 			processedDocsFile.createNewFile();
 		readProcessedDocs();
+
+		ObjectMapper mapper = new ObjectMapper();
+
 		// Laufe solange, bis die Anzahl der bearbeiteten Artikel der Anzahl der .txt-Dateien im Korpus entspricht
 		while (fileCounter > processedDocsList.size()) {
 			File f = getRawRandomFile(corpusFolder);
-			readFile(f);
+
+			String fileContent = readFile(f);
+			String jsonString = getJsonFile(f.getAbsolutePath(), fileContent);
+
+			// Erstellt aus dem json-String ein Objekt
+			TextModel model = mapper.readValue(jsonString, TextModel.class);
+
 			processedDocsList.add(f.getName());
-			addProcessedDoc(f.getName());
+			// Für Testzwecke wurde das Hinzufügen zu der Liste auskommentiert.
+			// addProcessedDoc(f.getName());
 		}
 
 	}
@@ -161,34 +175,43 @@ public class Main extends StanfordCoreNLP {
 	}
 
 	/**
-	 * Hier soll der Artikel verarbeitet werden. Bis jetzt wird nur die XML Datei gespeichert.
-	 * @param f
+	 * Liest den Inhalt einer .txt-Datei ein und gibt diesen zurück
+	 * @param Der Inhalt der Datei
 	 */
-	private static void readFile(File f) {
+	private static String readFile(File f) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
 			String line = "";
 			StringBuilder builder = new StringBuilder();
 			while ((line = reader.readLine()) != null) {
 				builder.append(line + "\n");
 			}
-			createXMLFile(f, builder.toString());
+			return builder.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println("Error reading the content of the article: " + f.getAbsolutePath());
+			return null;
 		}
 	}
 
 	/**
-	 * Siehe Methode readFile
-	 * @param f
-	 * @param content
-	 * @throws IOException
+	 * Wendet die StanfordNLP an und erstellt aus dem Resulutat eine Json-String
+	 * @param Der Name des Artikels, der für das Verwerfen von Fehlermeldungen gebraucht wird
+	 * @param Der unbearbeitete Kontent des Artikels
+	 * @return Der Json-String von dem Artikel
 	 */
-	private static void createXMLFile(File f, String content) throws IOException {
-		PrintWriter xmlOut = new PrintWriter(f.getName().replaceAll(".txt", ".xml"));
-		Annotation annotation = new Annotation(content);
-		pipeline.annotate(annotation);
-		pipeline.xmlPrint(annotation, xmlOut);
-		IOUtils.closeIgnoringExceptions(xmlOut);
+	private static String getJsonFile(String fileName, String content) {
+		try {
+			Annotation annotation = new Annotation(content);
+			Writer writer = new StringWriter();
+			pipeline.annotate(annotation);
+			pipeline.jsonPrint(annotation, writer);
+			IOUtils.closeIgnoringExceptions(writer);
+			return writer.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Error creating the json-file for the article: " + fileName);
+			return null;
+		}
 	}
 
 }
