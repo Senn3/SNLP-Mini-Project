@@ -1,7 +1,3 @@
-#Für Patrick:
-->http://download.wikimedia.org/itwiki/latest/itwiki-latest-pages-articles.xml.bz2
-
-
 # WikiExtractor
 [WikiExtractor.py](http://medialab.di.unipi.it/wiki/Wikipedia_Extractor) is a Python script that extracts and cleans text from a [Wikipedia database dump](http://download.wikimedia.org/).
 

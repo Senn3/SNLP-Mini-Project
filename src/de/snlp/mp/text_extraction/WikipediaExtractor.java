@@ -1,4 +1,4 @@
-package de.snlp.mp.main;
+package de.snlp.mp.text_extraction;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

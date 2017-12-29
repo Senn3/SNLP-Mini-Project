@@ -1,4 +1,4 @@
-package de.snlp.mp.model;
+package de.snlp.mp.text_model;
 
 import java.util.List;
 

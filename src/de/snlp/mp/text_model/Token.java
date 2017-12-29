@@ -1,4 +1,4 @@
-package de.snlp.mp.model;
+package de.snlp.mp.text_model;
 
 public class Token {
 
@@ -10,6 +10,7 @@ public class Token {
 	private int characterOffsetEnd;
 	private String pos;
 	private String ner;
+	private String normalizedNER;
 	private String speaker;
 	private String before;
 	private String after;
@@ -100,6 +101,14 @@ public class Token {
 
 	public void setAfter(String after) {
 		this.after = after;
+	}
+
+	public String getNormalizedNER() {
+		return normalizedNER;
+	}
+
+	public void setNormalizedNER(String normalizedNER) {
+		this.normalizedNER = normalizedNER;
 	}
 
 }

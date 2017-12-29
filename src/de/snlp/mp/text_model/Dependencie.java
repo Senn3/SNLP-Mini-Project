@@ -1,11 +1,11 @@
-package de.snlp.mp.model;
+package de.snlp.mp.text_model;
 
 public class Dependencie {
 
 	private String dep;
-	private String governor;
+	private int governor;
 	private String governorGloss;
-	private String dependent;
+	private int dependent;
 	private String dependentGloss;
 
 	public String getDep() {
@@ -16,11 +16,11 @@ public class Dependencie {
 		this.dep = dep;
 	}
 
-	public String getGovernor() {
+	public int getGovernor() {
 		return governor;
 	}
 
-	public void setGovernor(String governor) {
+	public void setGovernor(int governor) {
 		this.governor = governor;
 	}
 
@@ -32,11 +32,11 @@ public class Dependencie {
 		this.governorGloss = governorGloss;
 	}
 
-	public String getDependent() {
+	public int getDependent() {
 		return dependent;
 	}
 
-	public void setDependent(String dependent) {
+	public void setDependent(int dependent) {
 		this.dependent = dependent;
 	}
 
