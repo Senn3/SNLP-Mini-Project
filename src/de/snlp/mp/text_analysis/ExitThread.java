@@ -13,7 +13,7 @@ public class ExitThread extends Thread {
 		while (!line.equalsIgnoreCase(QUIT_COMMAND)) {
 			line = s.nextLine();
 		}
-		System.out.println("Stop command recognized.");
+		TextAnalyzer.log("Stop command recognized.");
 		s.close();
 	}
 }

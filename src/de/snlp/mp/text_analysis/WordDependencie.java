@@ -10,6 +10,8 @@ public class WordDependencie {
 
 	private int occurrence;
 
+	private static final String SPLIT_STRING = " ";
+
 	public WordDependencie() {
 		this.occurrence = 1;
 	}
@@ -64,16 +66,20 @@ public class WordDependencie {
 
 	@Override
 	public String toString() {
-		return type + "###" + word + "###" + relation + "###" + word2 + "###" + occurrence;
+		return type + SPLIT_STRING + word + SPLIT_STRING + relation + SPLIT_STRING + word2 + SPLIT_STRING + occurrence;
 	}
 
 	public static WordDependencie convertToWordDep(String s) {
-		String[] w = s.split("###");
-		if (w.length != 5) {
-			System.out.println("Error while converting the string: " + s);
+		try {
+			String[] w = s.split(SPLIT_STRING);
+			if (w.length != 5) {
+				throw new Exception();
+			} else {
+				return new WordDependencie(w[0], w[1], w[2], w[3], Integer.parseInt(w[4]));
+			}
+		} catch (Exception e) {
+			TextAnalyzer.log("Error converting the string: " + s);
 			return null;
-		} else {
-			return new WordDependencie(w[0], w[1], w[2], w[3], Integer.parseInt(w[4]));
 		}
 	}
 

@@ -6,28 +6,21 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Properties;
-
-import org.apache.commons.io.FileUtils;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.snlp.mp.text_model.Dependencie;
 import de.snlp.mp.text_model.Sentence;
 import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.text_model.Token;
-import edu.stanford.nlp.io.IOUtils;
-import edu.stanford.nlp.io.RuntimeIOException;
-import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
 public class TextAnalyzer extends StanfordCoreNLP {
+
+	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
 	private static String corpusName = "Wikipedia Corpus Cutted";
 	private static File corpusFolder;
@@ -42,8 +35,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 */
 	private static final File processedDocsFile = new File("ProcessedDocuments.txt");
 
-	private static StanfordCoreNLP pipeline;
-
 	/**
 	 * Die Anzahl der Dokumente im Korpus.
 	 */
@@ -52,112 +43,120 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	private static List<WordDependencie> wordDependencies = new ArrayList<WordDependencie>();
 	private static final File analysedTextFile = new File("AnalysedText.txt");
 
+	private static TextModel[] textModelResults;
+
+	private static int cores;
+
+	private static StanfordLibThread[] threads;
+
+	private static ExitThread exitThread;
+
 	public static void main(String[] args) {
+
 		if (args.length == 0) {
-			System.out.println("No argument found. Use \"" + corpusName + "\" as corpus folder.");
+			log("No argument found. Use \"" + corpusName + "\" as corpus folder.");
 		} else {
 			corpusName = args[1];
 		}
 		corpusFolder = new File(corpusName);
 		if (!corpusFolder.exists()) {
-			System.out.println("Cannot find the folder: " + corpusFolder.getAbsolutePath());
+			log("Cannot find the folder: " + corpusFolder.getAbsolutePath());
 			return;
 		}
 
-		initStandFordLib();
+		StanfordLibThread.initStandFordLib();
 		setFileCount(corpusFolder);
-		if (!processedDocsFile.exists()) {
-			try {
-				processedDocsFile.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		readProcessedDocs();
+		log(processedDocsList.size() + " out of " + fileCounter + " articles are already processed. ");
+
+		log("Read previous word dependencies out of the file \"" + analysedTextFile.getName() + "\".");
 		readWordDepListToFile();
+		log("Found " + wordDependencies.size() + " different word dependencies.");
 
-		ObjectMapper mapper = new ObjectMapper();
-
-		System.out.println("This program should be stopped with: \"" + ExitThread.QUIT_COMMAND + "\".");
-		System.out.println("DONOT use cmd + c,otherwise no calculations will be saved.");
-		ExitThread exitThread = new ExitThread();
+		log("This program should be stopped with: \"" + ExitThread.QUIT_COMMAND + "\".");
+		log("DONOT use cmd + c,otherwise no calculations will be saved.");
+		exitThread = new ExitThread();
 		exitThread.start();
 
-		System.out.println("--------------------------------------------------");
-		// Laufe solange, bis die Anzahl der bearbeiteten Artikel der Anzahl der .txt-Dateien im Korpus entspricht
-		while (fileCounter > processedDocsList.size() && exitThread.isAlive()) {
+		cores = Runtime.getRuntime().availableProcessors();
+		threads = new StanfordLibThread[cores];
+		textModelResults = new TextModel[cores];
+
+		do {
 			try {
-				File f = getRawRandomFile(corpusFolder);
-				System.out.println("Process: " + f.getAbsolutePath());
-
-				String fileContent = readFile(f);
-				String jsonString = getJsonFile(f.getAbsolutePath(), fileContent);
-
-				// Erstellt aus dem json-String ein Objekt
-				TextModel model = mapper.readValue(jsonString, TextModel.class);
-				processTextModel(model);
-
-				processedDocsList.add(f.getName());
-				addProcessedDoc(f.getName());
-			} catch (IOException e) {
-				System.out.println(e.toString());
+				startThreadIfAvailable();
+				processResultIfAvailable();
+			} catch (Exception e) {
+				System.out.println("T: "+e.getMessage()+" "+e.getLocalizedMessage());
+				e.printStackTrace();
 			}
-		}
-		System.out.println("--------------------------------------------------");
+		} while ((fileCounter > processedDocsList.size() && exitThread.isAlive()) || threadsAreAlive(threads) || !resultsAreNull());
 
-		writeWordDepListToFile();
-		System.out.println("Finished program. The result is saved to: \"" + analysedTextFile.getName() + "\"");
+		log("Start saving the " + wordDependencies.size() + " results.");
+		writeListToFile(processedDocsFile, new ArrayList<Object>(processedDocsList));
+		writeListToFile(analysedTextFile, new ArrayList<Object>(wordDependencies));
+		log("Finished program. The result is saved to: \"" + analysedTextFile.getName() + "\"");
 		System.exit(0);
 	}
 
-	/**
-	 * Initialisiert die StanfordCoreNLP Bibliothek. Falls das Modell für die englische Sprache fehlt wird es das Programm beendet und eine
-	 * entsprechende Nachricht ausgegeben.
-	 */
-	private static void initStandFordLib() {
-		try {
-			System.out.println("Initialze StanfordCoreNLP library.");
-			// Entferne den Konsolenoutput von StanfordCoreNLP
-			PrintStream err = System.err;
-			System.err.close();
-			Properties props = new Properties();
-			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref, relation");
-			pipeline = new StanfordCoreNLP(props);
-			System.setErr(err);
-			System.out.println("Finish initialization of the StanfordCoreNLP library.");
-		} catch (RuntimeIOException e) {
-			System.out.println("Can't find the english language model file.");
-			donwloadModel();
-			System.exit(255);
+	private static void startThreadIfAvailable() {
+		for (int i = 0; i < cores; i++) {
+			if (fileCounter > processedDocsList.size() && exitThread.isAlive()) {
+				// Rechnet gerade einer der möglichen Threads nicht?
+				if (!threadIsAlive(threads[i]) && textModelResults[i] == null) {
+					File f = getRawRandomFile(corpusFolder);
+					processedDocsList.add(f.getName());
+					String fileContent = readFile(f);
+					threads[i] = new StanfordLibThread(i, f.getAbsolutePath(), fileContent);
+					threads[i].start();
+				}
+			}
 		}
 	}
 
-	/**
-	 * Lädt das Modell für die englische Sprache herunter und beendet das Programm falls ein Fehler beim Download auftritt.
-	 */
-	private static void donwloadModel() {
-		File file = new File("stanford-english-corenlp-models.jar");
-		try {
-			if (!file.exists()) {
-				System.out.println("Download the model file for the english language.");
-				URL url = new URL("https://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar");
-				FileUtils.copyURLToFile(url, file);
+	private static void processResultIfAvailable() {
+		for (int i = 0; i < cores; i++) {
+			if (!threadIsAlive(threads[i]) && textModelResults[i] != null) {
+				processTextModel(textModelResults[i]);
+				textModelResults[i] = null;
+				threads[i] = null;
 			}
-			System.out.println(
-					"Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
-		} catch (IOException e) {
-			System.out.println("Download failed. Exit program.");
-			if (file.exists())
-				file.delete();
-			System.exit(255);
-			e.printStackTrace();
 		}
+	}
+
+	public static void setTextModelResult(int thread, TextModel model) {
+		textModelResults[thread] = model;
+	}
+
+	private static boolean resultsAreNull() {
+		for (int i = 0; i < textModelResults.length; i++) {
+			if (textModelResults[i] != null)
+				return false;
+		}
+		return true;
+	}
+
+	private static boolean threadsAreAlive(StanfordLibThread[] threads) {
+		for (int i = 0; i < threads.length; i++) {
+			if (threadIsAlive(threads[i]))
+				return true;
+		}
+		return false;
+	}
+
+	private static boolean threadIsAlive(StanfordLibThread thread) {
+		if (thread != null && thread.isAlive())
+			return true;
+		else
+			return false;
 	}
 
 	/**
 	 * Lädt die Datei, in der die Namen der bereits abgearbeiteten Artikel drin stehen und fügt die zur Liste 'processedDocsFile' hinzu.
 	 */
 	private static void readProcessedDocs() {
+		if (!processedDocsFile.exists())
+			return;
 		try (BufferedReader reader = new BufferedReader(new FileReader(processedDocsFile))) {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
@@ -165,19 +164,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 					processedDocsList.add(line);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Fügt eine neuen Namen zur Liste der bereits abgearbeiteten Artikel hinzu.
-	 * @param Name des neuen abgearbeiteten Artikels
-	 */
-	private static void addProcessedDoc(String name) {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(processedDocsFile, true))) {
-			writer.write(name + "\n");
-			writer.flush();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -229,72 +215,79 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			return builder.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("Error reading the content of the article: " + f.getAbsolutePath());
+			log("Error reading the content of the article: " + f.getAbsolutePath());
 			return null;
 		}
 	}
 
 	/**
-	 * Wendet die StanfordNLP an und erstellt aus dem Resulutat eine Json-String
-	 * @param Der Name des Artikels, der für das Verwerfen von Fehlermeldungen gebraucht wird
-	 * @param Der unbearbeitete Kontent des Artikels
-	 * @return Der Json-String von dem Artikel
+	 * Bearbeitet einen Text, indem von jedem Satz die Abhängigkeiten gespeichert werden
+	 * @param model
 	 */
-	private static String getJsonFile(String fileName, String content) {
-		try {
-			Annotation annotation = new Annotation(content);
-			Writer writer = new StringWriter();
-			pipeline.annotate(annotation);
-			pipeline.jsonPrint(annotation, writer);
-			IOUtils.closeIgnoringExceptions(writer);
-			return writer.toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Error creating the json-file for the article: " + fileName);
-			return null;
-		}
-	}
-
 	private static void processTextModel(TextModel model) {
 		for (Sentence s : model.getSentences()) {
 			List<Token> token = s.getTokens();
 			for (Dependencie d : s.getBasicDependencies()) {
 				WordDependencie w = createWordDependencie(d, token);
-				if (!isWordDepInList(w)) {
-					wordDependencies.add(w);
+				if (w != null) {
+					if (!isWordDepInList(w)) {
+						wordDependencies.add(w);
+					}
 				}
 			}
 		}
 	}
 
+	/**
+	 * Liest die Datei in der die Wortabhängigkeiten gespeichert sind ein, falls vorhanden, und füllt die Liste "wordDependencies"
+	 */
 	private static void readWordDepListToFile() {
+		if (!analysedTextFile.exists())
+			return;
 		try (BufferedReader reader = new BufferedReader(new FileReader(analysedTextFile))) {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
 				if (!line.equals("")) {
 					WordDependencie w = WordDependencie.convertToWordDep(line);
-					if (w != null)
+					if (w != null) 
 						wordDependencies.add(w);
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * Erstellt eine Wortabhängigkeit aus der Abhängigkeit und der Liste der Wörter, in der der Worttyp (bsp. NN) gespeichert ist.
+	 * @param d
+	 * @param token
+	 * @return
+	 */
 	private static WordDependencie createWordDependencie(Dependencie d, List<Token> token) {
-		WordDependencie w = new WordDependencie();
-		w.setWord(d.getGovernorGloss());
-		w.setWord2(d.getDependentGloss());
-		w.setRelation(d.getDep());
-		if (d.getDep().equals("ROOT")) {
-			w.setType("ROOT");
-		} else {
-			w.setType(token.get(d.getGovernor()).getPos());
+		try {
+			WordDependencie w = new WordDependencie();
+			w.setWord(d.getGovernorGloss());
+			w.setWord2(d.getDependentGloss());
+			w.setRelation(d.getDep());
+			if (d.getDep().equals("ROOT")) {
+				w.setType("ROOT");
+			} else {
+				w.setType(token.get(d.getGovernor() - 1).getPos());
+			}
+			return w;
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			return null;
 		}
-		return w;
 	}
 
+	/**
+	 * Überprüft, ob eine Wortabhängigkeit genau so schon in der Liste vorkommt. Ist dies der Fall, so wird der Zähler von dieser um 1
+	 * erhöht.
+	 * @param entry
+	 * @return
+	 */
 	private static boolean isWordDepInList(WordDependencie entry) {
 		for (WordDependencie e : wordDependencies) {
 			if (e.getWord().equals(entry.getWord()) && e.getWord2().equals(entry.getWord2()) && e.getType().equals(entry.getType())
@@ -306,14 +299,19 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		return false;
 	}
 
-	private static void writeWordDepListToFile() {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(analysedTextFile))) {
-			for (WordDependencie e : wordDependencies) {
-				writer.write(e.toString() + "\n");
+	private static void writeListToFile(File f, List<Object> list) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
+			for (Object o : list) {
+				writer.write(o.toString() + "\n");
 			}
 			writer.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+
+	public static void log(String s) {
+		System.out.println(df.format(new Date()) + " - " + s);
+	}
+
 }
