@@ -24,7 +24,7 @@ public class StanfordLibThread extends Thread {
 	private static StanfordCoreNLP pipeline;
 
 	/**
-	 * Initialisiert die StanfordCoreNLP Bibliothek. Falls das Modell für die englische Sprache fehlt wird es das Programm beendet und eine
+	 * Initialisiert die StanfordCoreNLP Bibliothek. Falls das Modell für die englische Sprache fehlt wird das Programm beendet und eine
 	 * entsprechende Nachricht ausgegeben.
 	 */
 	public static void initStandFordLib() {
@@ -42,7 +42,7 @@ public class StanfordLibThread extends Thread {
 	}
 
 	/**
-	 * Lädt das Modell für die englische Sprache herunter und beendet das Programm falls ein Fehler beim Download auftritt.
+	 * Lädt das Modell für die englische Sprache herunter und beendet das Programm, falls ein Fehler beim Download auftritt.
 	 */
 	private static void donwloadModel() {
 		File file = new File("stanford-english-corenlp-models.jar");
@@ -63,8 +63,19 @@ public class StanfordLibThread extends Thread {
 		}
 	}
 
+	/**
+	 * Die Number des Threads.
+	 */
 	private int thread;
+
+	/**
+	 * Der Name der Datei, dessen Text gerade verarbeitet wird. Wird ausschließlich zum loggen gebraucht.
+	 */
 	private String fileName;
+
+	/**
+	 * Der Inhalt der Datei, die verarbeitet werden soll.
+	 */
 	private String content;
 
 	public StanfordLibThread(int thread, String fileName, String content) {
@@ -73,6 +84,10 @@ public class StanfordLibThread extends Thread {
 		this.content = content;
 	}
 
+	/**
+	 * Startet den Prozess, indem die Datei durch die StanfordNLP Library in ein json-String umgewandelt wird und anschließend in ein
+	 * TextModel-Objekt konvertiert wird.
+	 */
 	@Override
 	public void run() {
 		try {

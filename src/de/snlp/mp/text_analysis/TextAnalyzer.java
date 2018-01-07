@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import de.snlp.mp.text_model.Dependencie;
+import de.snlp.mp.text_model.Dependency;
 import de.snlp.mp.text_model.Sentence;
 import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.text_model.Token;
@@ -40,7 +40,9 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 */
 	private static int fileCounter;
 
-	private static List<WordDependencie> wordDependencies = new ArrayList<WordDependencie>();
+	// private static List<WordDependency> wordDependencies = new ArrayList<WordDependency>();
+	private static List<List<WordDependency>> wordDependencies = new ArrayList<List<WordDependency>>();
+
 	private static final File analysedTextFile = new File("AnalysedText.txt");
 
 	private static TextModel[] textModelResults;
@@ -71,7 +73,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 		log("Read previous word dependencies out of the file \"" + analysedTextFile.getName() + "\".");
 		readWordDepListToFile();
-		log("Found " + wordDependencies.size() + " different word dependencies.");
+		log("Found " + countWordDependencies() + " different word dependencies.");
 
 		log("This program should be stopped with: \"" + ExitThread.QUIT_COMMAND + "\".");
 		log("DONOT use cmd + c,otherwise no calculations will be saved.");
@@ -79,6 +81,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		exitThread.start();
 
 		cores = Runtime.getRuntime().availableProcessors();
+		// cores = 1;
 		threads = new StanfordLibThread[cores];
 		textModelResults = new TextModel[cores];
 
@@ -87,14 +90,20 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				startThreadIfAvailable();
 				processResultIfAvailable();
 			} catch (Exception e) {
-				System.out.println("T: "+e.getMessage()+" "+e.getLocalizedMessage());
 				e.printStackTrace();
 			}
 		} while ((fileCounter > processedDocsList.size() && exitThread.isAlive()) || threadsAreAlive(threads) || !resultsAreNull());
 
-		log("Start saving the " + wordDependencies.size() + " results.");
-		writeListToFile(processedDocsFile, new ArrayList<Object>(processedDocsList));
-		writeListToFile(analysedTextFile, new ArrayList<Object>(wordDependencies));
+		log("Start saving the " + countWordDependencies() + " results.");
+		writeListToFile(processedDocsFile, new ArrayList<Object>(processedDocsList), false);
+		for (int i = 0; i < wordDependencies.size(); i++) {
+			if (i == 0)
+				writeListToFile(analysedTextFile, new ArrayList<Object>(wordDependencies.get(i).subList(1, wordDependencies.get(i).size())),
+						false);
+			else
+				writeListToFile(analysedTextFile, new ArrayList<Object>(wordDependencies.get(i).subList(1, wordDependencies.get(i).size())),
+						true);
+		}
 		log("Finished program. The result is saved to: \"" + analysedTextFile.getName() + "\"");
 		System.exit(0);
 	}
@@ -115,12 +124,18 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	}
 
 	private static void processResultIfAvailable() {
-		for (int i = 0; i < cores; i++) {
-			if (!threadIsAlive(threads[i]) && textModelResults[i] != null) {
-				processTextModel(textModelResults[i]);
-				textModelResults[i] = null;
-				threads[i] = null;
+		try {
+			for (int i = 0; i < cores; i++) {
+				if (!threadIsAlive(threads[i]) && textModelResults[i] != null) {
+					processTextModel(textModelResults[i]);
+					textModelResults[i] = null;
+					threads[i] = null;
+				}
 			}
+		} catch (NullPointerException e) {
+			System.out.println("processResultIfAvailable");
+			System.out.println((threads == null) + " " + (textModelResults == null));
+			e.printStackTrace();
 		}
 	}
 
@@ -225,16 +240,31 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 * @param model
 	 */
 	private static void processTextModel(TextModel model) {
-		for (Sentence s : model.getSentences()) {
-			List<Token> token = s.getTokens();
-			for (Dependencie d : s.getBasicDependencies()) {
-				WordDependencie w = createWordDependencie(d, token);
-				if (w != null) {
-					if (!isWordDepInList(w)) {
-						wordDependencies.add(w);
+		try {
+			if (model == null)
+				System.out.println("Model");
+			for (Sentence s : model.getSentences()) {
+				if (s == null)
+					System.out.println("Sentence");
+				List<Token> token = s.getTokens();
+				if (token == null)
+					System.out.println("Token");
+				if (s.getBasicDependencies() != null) {
+					for (Dependency d : s.getBasicDependencies()) {
+						WordDependency w = createWordDependency(d, token);
+						if (w != null) {
+							if (!isWordDepInList(w)) {
+								wordDependencies.get(getWordDependencyList(w)).add(w);
+							}
+						}
 					}
+				} else {
+					System.out.println("dep == null");
 				}
 			}
+		} catch (NullPointerException e) {
+			System.out.println("processTextModel");
+			e.printStackTrace();
 		}
 	}
 
@@ -248,9 +278,10 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
 				if (!line.equals("")) {
-					WordDependencie w = WordDependencie.convertToWordDep(line);
-					if (w != null) 
-						wordDependencies.add(w);
+					WordDependency w = WordDependency.convertToWordDep(line);
+					if (w != null) {
+						wordDependencies.get(getWordDependencyList(w)).add(w);
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -264,9 +295,9 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 * @param token
 	 * @return
 	 */
-	private static WordDependencie createWordDependencie(Dependencie d, List<Token> token) {
+	private static WordDependency createWordDependency(Dependency d, List<Token> token) {
 		try {
-			WordDependencie w = new WordDependencie();
+			WordDependency w = new WordDependency();
 			w.setWord(d.getGovernorGloss());
 			w.setWord2(d.getDependentGloss());
 			w.setRelation(d.getDep());
@@ -288,19 +319,48 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 * @param entry
 	 * @return
 	 */
-	private static boolean isWordDepInList(WordDependencie entry) {
-		for (WordDependencie e : wordDependencies) {
-			if (e.getWord().equals(entry.getWord()) && e.getWord2().equals(entry.getWord2()) && e.getType().equals(entry.getType())
-					&& e.getRelation().equals(entry.getRelation())) {
-				e.increaseOccurrence();
-				return true;
+	private static boolean isWordDepInList(WordDependency entry) {
+		try {
+			List<WordDependency> list = wordDependencies.get(getWordDependencyList(entry));
+			for (WordDependency e : list) {
+				if (entry.getWord() != null && entry.getWord2() != null && entry.getType() != null && entry.getRelation() != null) {
+					if (e.getWord().equals(entry.getWord()) && e.getWord2().equals(entry.getWord2()) && e.getType().equals(entry.getType())
+							&& e.getRelation().equals(entry.getRelation())) {
+						e.increaseOccurrence();
+						return true;
+					}
+				} else {
+					return true;
+				}
 			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
 
-	private static void writeListToFile(File f, List<Object> list) {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
+	private static int getWordDependencyList(WordDependency entry) {
+		for (int i = 0; i < wordDependencies.size(); i++) {
+			if (wordDependencies.get(i).get(0).getType().equals(entry.getType()))
+				return i;
+		}
+		wordDependencies.add(new ArrayList<WordDependency>());
+		WordDependency head = new WordDependency(entry.getType(), "HEAD", "HEAD", "HEAD", 0);
+		wordDependencies.get(wordDependencies.size() - 1).add(head);
+		return wordDependencies.size() - 1;
+	}
+
+	private static int countWordDependencies() {
+		int count = 0;
+		for (int i = 0; i < wordDependencies.size(); i++)
+			count += wordDependencies.get(i).size() - 1;
+		return count;
+	}
+
+	// 357285
+
+	private static void writeListToFile(File f, List<Object> list, boolean append) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f, append))) {
 			for (Object o : list) {
 				writer.write(o.toString() + "\n");
 			}

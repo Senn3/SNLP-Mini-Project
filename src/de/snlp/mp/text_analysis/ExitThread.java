@@ -4,6 +4,9 @@ import java.util.Scanner;
 
 public class ExitThread extends Thread {
 
+	/**
+	 * Der Befehl der nötig ist, um das Programm sauber zu beenden, damit auch alle Ergebnisse gespeichert werden.
+	 */
 	public static final String QUIT_COMMAND = "quit";
 
 	@Override

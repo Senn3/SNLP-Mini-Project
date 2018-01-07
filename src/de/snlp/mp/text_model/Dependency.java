@@ -1,6 +1,6 @@
 package de.snlp.mp.text_model;
 
-public class Dependencie {
+public class Dependency {
 
 	private String dep;
 	private int governor;

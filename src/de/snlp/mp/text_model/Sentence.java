@@ -6,9 +6,9 @@ public class Sentence {
 
 	private int index;
 	private String parse;
-	private List<Dependencie> basicDependencies;
-	private List<Dependencie> enhancedDependencies;
-	private List<Dependencie> enhancedPlusPlusDependencies;
+	private List<Dependency> basicDependencies;
+	private List<Dependency> enhancedDependencies;
+	private List<Dependency> enhancedPlusPlusDependencies;
 	private List<Token> tokens;
 
 	public int getIndex() {
@@ -27,27 +27,27 @@ public class Sentence {
 		this.parse = parse;
 	}
 
-	public List<Dependencie> getBasicDependencies() {
+	public List<Dependency> getBasicDependencies() {
 		return basicDependencies;
 	}
 
-	public void setBasicDependencies(List<Dependencie> basicDependencies) {
+	public void setBasicDependencies(List<Dependency> basicDependencies) {
 		this.basicDependencies = basicDependencies;
 	}
 
-	public List<Dependencie> getEnhancedDependencies() {
+	public List<Dependency> getEnhancedDependencies() {
 		return enhancedDependencies;
 	}
 
-	public void setEnhancedDependencies(List<Dependencie> enhancedDependencies) {
+	public void setEnhancedDependencies(List<Dependency> enhancedDependencies) {
 		this.enhancedDependencies = enhancedDependencies;
 	}
 
-	public List<Dependencie> getEnhancedPlusPlusDependencies() {
+	public List<Dependency> getEnhancedPlusPlusDependencies() {
 		return enhancedPlusPlusDependencies;
 	}
 
-	public void setEnhancedPlusPlusDependencies(List<Dependencie> enhancedPlusPlusDependencies) {
+	public void setEnhancedPlusPlusDependencies(List<Dependency> enhancedPlusPlusDependencies) {
 		this.enhancedPlusPlusDependencies = enhancedPlusPlusDependencies;
 	}
 
