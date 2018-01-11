@@ -95,7 +95,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		} while ((fileCounter > processedDocsList.size() && exitThread.isAlive()) || threadsAreAlive(threads) || !resultsAreNull());
 
 		log("Start saving the " + countWordDependencies() + " results.");
-		writeListToFile(processedDocsFile, new ArrayList<Object>(processedDocsList), false);
+//		writeListToFile(processedDocsFile, new ArrayList<Object>(processedDocsList), false);
 		for (int i = 0; i < wordDependencies.size(); i++) {
 			if (i == 0)
 				writeListToFile(analysedTextFile, new ArrayList<Object>(wordDependencies.get(i).subList(1, wordDependencies.get(i).size())),

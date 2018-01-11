@@ -7,57 +7,66 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import edu.mit.jwi.item.POS;
 
 public class FactChecker {
 
-	private static final String factFile = "AnalysedText.txt";
+	/*
+	 * The name of the file, which contains the statement to proof.
+	 */
+	private static final String statementFile = "Wikipedia Corpus Cutted/train.txt";
+	
+	/*
+	 * The name of the file, which contains the analyzed statement.
+	 */
+	private static final String analyzedStatementFile = "AnalysedText.txt";
 
 	/*
-	 * List that contains all verbs from the fact
+	 * List that contains all verbs from the statement
 	 */
 	private static List<String> verbs = new ArrayList<String>();
-	
+
 	/*
-	 * List that contains all nouns from the fact
+	 * List that contains all nouns from the statement
 	 */
 	private static List<String> nouns = new ArrayList<String>();
-	
+
 	/*
-	 * List that contains all names from the fact
+	 * List that contains all names from the statement
 	 */
 	private static List<String> names = new ArrayList<String>();
 
 	public static void main(String[] args) {
-		getWordsFromFacts();
-		
+		String statement = getStatement();
+		getWordsFromStatement();
+
 		System.out.println(verbs);
 		System.out.println(nouns);
 		System.out.println(names);
-		
-		
-		
+
 		List<List<String>> nounsWithSynonyms = getSynonyms(nouns, POS.NOUN);
 		List<List<String>> verbsWithSynonyms = getSynonyms(verbs, POS.VERB);
-		
+
 		System.out.println(nounsWithSynonyms);
 		System.out.println(verbsWithSynonyms);
+		
+		//TODO use actual wikipedia articles here
+		String wikiFile = "angela.txt";
+		System.out.println(isStatementAsAWholeInFile(statement, wikiFile));
 	}
 
 	/*
-	 * Gets verbs and nouns from analyzed facts
-	 * Could cause problems if executed on more than one fact at a time.
+	 * Gets verbs and nouns from analyzed facts Could cause problems if executed on more than one fact at a time.
 	 */
-	private static void getWordsFromFacts() {
+	private static void getWordsFromStatement() {
 		try {
 			// Read in analyzed fact
-			BufferedReader in = new BufferedReader(new FileReader(factFile));
+			BufferedReader in = new BufferedReader(new FileReader(analyzedStatementFile));
 			String line = "", previous = "", type = "";
 			int numNouns = 0, numVerbs = 0, numNames = 0;
 			boolean start = true, compoundSeen = false;
 			String[] compound = new String[10];
-			
+
 			while ((line = in.readLine()) != null) {
 				String[] wordsFromCurrentLine = line.split(" ");
 
@@ -82,13 +91,12 @@ public class FactChecker {
 					case "VB":
 						numVerbs++;
 						break;
-						
+
 					case "NNP":
 						numNames++;
 						break;
 					}
 				}
-
 				type = getWordTypeAndSaveWordToList(wordsFromCurrentLine, numNouns, numVerbs, numNames);
 
 				if (wordsFromCurrentLine[2].equals("compound")) {
@@ -99,19 +107,18 @@ public class FactChecker {
 				previous = wordsFromCurrentLine[1];
 			}
 			in.close();
-			
+
 			// add last compound word, happens if compound is in last line of file
 			if (compound[0] != null) {
 				addCompoundWordToList(compound, type, numNouns, numVerbs, numNames);
 			}
-			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static void addCompoundWordToList(String[] compound, String type, int numNouns, int numVerbs, int numNames) {
 		String compoundWord = "";
 		for (int i = compound.length - 1; i >= 0; i--) {
@@ -119,6 +126,7 @@ public class FactChecker {
 				compoundWord = compound[i] + " ";
 			} else
 				continue;
+			
 			switch (type) {
 			case "NN":
 				nouns.set(numNouns, compoundWord + nouns.get(numNouns));
@@ -127,14 +135,14 @@ public class FactChecker {
 			case "VB":
 				verbs.set(numVerbs, compoundWord + verbs.get(numVerbs));
 				break;
-				
+
 			case "NNP":
 				names.set(numNames, compoundWord + names.get(numNames));
 				break;
 			}
 		}
 	}
-	
+
 	private static String getWordTypeAndSaveWordToList(String[] wordsFromCurrentLine, int numNouns, int numVerbs, int numNames) {
 		if (wordsFromCurrentLine[0].equals("NN") || wordsFromCurrentLine[0].equals("NNS")) {
 			if (!nouns.contains(wordsFromCurrentLine[1]))
@@ -164,7 +172,7 @@ public class FactChecker {
 		}
 		return "";
 	}
-	
+
 	private static String[] getCompoundWordArray(String[] wordsFromCurrentLine, String[] compound) {
 		for (int i = 0; i < compound.length; i++) {
 			if (compound[i] == null) {
@@ -177,17 +185,51 @@ public class FactChecker {
 
 	private static List<List<String>> getSynonyms(List<String> words, POS type) {
 		SynonymDictionary synonymDictionary = new SynonymDictionary();
-		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>(); 
-		
-		for(int i=0;i<words.size();i++){
+		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
+
+		for (int i = 0; i < words.size(); i++) {
 			wordsWithSynonyms.add(new ArrayList<String>());
-			
-			for(String st : synonymDictionary.getSynonyms(words.get(i), type))
+
+			for (String st : synonymDictionary.getSynonyms(words.get(i), type))
 				wordsWithSynonyms.get(i).add(st.replaceAll("[^a-zA-Z]", " "));
 			System.out.println();
 		}
-		
-		
+
 		return wordsWithSynonyms;
+	}
+	
+	private static String getStatement() {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(statementFile));
+			String line = "";
+			if ((line = in.readLine()) != null) {
+				in.close();
+				return line;
+			}
+			in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	private static boolean isStatementAsAWholeInFile(String statement, String fileName) {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(fileName));
+			String line = "";
+			while ((line = in.readLine()) != null) {
+				if(line.contains(statement))
+					in.close();
+					return true;
+			}
+			in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 }
