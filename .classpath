@@ -8,9 +8,10 @@
 	<classpathentry kind="lib" path="protobuf.jar"/>
 	<classpathentry kind="lib" path="xom.jar"/>
 	<classpathentry kind="lib" path="commons-io-2.6.jar"/>
-	<classpathentry kind="lib" path="stanford-english-corenlp-models.jar"/>
 	<classpathentry kind="lib" path="jackson-core-2.9.3.jar"/>
 	<classpathentry kind="lib" path="jackson-annotations-2.9.3.jar"/>
 	<classpathentry kind="lib" path="jackson-databind-2.9.3.jar"/>
+	<classpathentry kind="lib" path="stanford-english-corenlp-models.jar"/>
+	<classpathentry kind="lib" path="edu.mit.jwi_2.4.0_jdk.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
