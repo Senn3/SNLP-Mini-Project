@@ -13,10 +13,11 @@ import edu.mit.jwi.item.ISynset;
 import edu.mit.jwi.item.IWord;
 import edu.mit.jwi.item.IWordID;
 import edu.mit.jwi.item.POS;
+import edu.mit.jwi.morph.WordnetStemmer;
 
 public class SynonymDictionary {
 	
-	private final String path = "Synonym Dictionary/dict";
+	private final String path = "SynonymDictionary/dict";
 	
 	private IDictionary dict;
 	
@@ -35,6 +36,10 @@ public class SynonymDictionary {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		// Get stem of word, since only those are in the dictionary
+		WordnetStemmer stemmer = new WordnetStemmer(dict);
+		word = stemmer.findStems(word, type).get(0);
 		
 		IIndexWord idxWord = dict.getIndexWord(word, type);
 		// Word not contained in dictionary?

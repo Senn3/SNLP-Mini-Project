@@ -36,14 +36,13 @@ public class FactChecker {
 		System.out.println(nouns);
 		System.out.println(names);
 		
-		SynonymDictionary synDict = new SynonymDictionary();
 		
-		//TODO: Get synonyms of all verbs and nouns.
-		for(String s : nouns) {
-			for(String st : synDict.getSynonyms(s, POS.NOUN))
-				System.out.print(st.replaceAll("[^a-zA-Z]", " ") + ", ");
-			System.out.println();
-		}
+		
+		List<List<String>> nounsWithSynonyms = getSynonyms(nouns, POS.NOUN);
+		List<List<String>> verbsWithSynonyms = getSynonyms(verbs, POS.VERB);
+		
+		System.out.println(nounsWithSynonyms);
+		System.out.println(verbsWithSynonyms);
 	}
 
 	/*
@@ -99,7 +98,8 @@ public class FactChecker {
 				start = false;
 				previous = wordsFromCurrentLine[1];
 			}
-
+			in.close();
+			
 			// add last compound word, happens if compound is in last line of file
 			if (compound[0] != null) {
 				addCompoundWordToList(compound, type, numNouns, numVerbs, numNames);
@@ -175,4 +175,19 @@ public class FactChecker {
 		return compound;
 	}
 
+	private static List<List<String>> getSynonyms(List<String> words, POS type) {
+		SynonymDictionary synonymDictionary = new SynonymDictionary();
+		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>(); 
+		
+		for(int i=0;i<words.size();i++){
+			wordsWithSynonyms.add(new ArrayList<String>());
+			
+			for(String st : synonymDictionary.getSynonyms(words.get(i), type))
+				wordsWithSynonyms.get(i).add(st.replaceAll("[^a-zA-Z]", " "));
+			System.out.println();
+		}
+		
+		
+		return wordsWithSynonyms;
+	}
 }
