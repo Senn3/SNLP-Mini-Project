@@ -15,7 +15,7 @@ public class FactChecker {
 	 * The name of the file, which contains the statement to proof.
 	 */
 	private static final String statementFile = "Wikipedia Corpus Cutted/train.txt";
-	
+
 	/*
 	 * The name of the file, which contains the analyzed statement.
 	 */
@@ -44,15 +44,21 @@ public class FactChecker {
 		System.out.println(nouns);
 		System.out.println(names);
 
+		// TODO don't use stems of words to compare with text
 		List<List<String>> nounsWithSynonyms = getSynonyms(nouns, POS.NOUN);
 		List<List<String>> verbsWithSynonyms = getSynonyms(verbs, POS.VERB);
 
 		System.out.println(nounsWithSynonyms);
 		System.out.println(verbsWithSynonyms);
-		
-		//TODO use actual wikipedia articles here
+
+		// TODO use actual wikipedia articles here
 		String wikiFile = "angela.txt";
-		System.out.println(isStatementAsAWholeInFile(statement, wikiFile));
+
+		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
+		wordsWithSynonyms.addAll(nounsWithSynonyms);
+		wordsWithSynonyms.addAll(verbsWithSynonyms);
+		System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement, wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
+				nounsWithSynonyms.size() + verbsWithSynonyms.size()));
 	}
 
 	/*
@@ -126,7 +132,7 @@ public class FactChecker {
 				compoundWord = compound[i] + " ";
 			} else
 				continue;
-			
+
 			switch (type) {
 			case "NN":
 				nouns.set(numNouns, compoundWord + nouns.get(numNouns));
@@ -197,7 +203,7 @@ public class FactChecker {
 
 		return wordsWithSynonyms;
 	}
-	
+
 	private static String getStatement() {
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(statementFile));
@@ -214,21 +220,40 @@ public class FactChecker {
 		}
 		return "";
 	}
-	
+
 	private static boolean isStatementAsAWholeInFile(String statement, String fileName) {
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(fileName));
 			String line = "";
 			while ((line = in.readLine()) != null) {
-				if(line.contains(statement))
+				if (line.toLowerCase().contains(statement.toLowerCase()))
 					in.close();
-					return true;
+				return true;
 			}
 			in.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/*
+	 * 
+	 */
+	private static boolean isStatementAsAWholeInFileUsingSynonyms(String statement, String fileName, List<List<String>> wordssWithSynonyms,
+			List<String> synonyms, int level) {
+		if (level == 0) {
+			return isStatementAsAWholeInFile(statement, fileName);
+		} else {
+			for (int i = 0; i < synonyms.size(); i++) {
+				if (isStatementAsAWholeInFileUsingSynonyms(
+						statement.replaceAll(synonyms.get(synonyms.size() - 1).toLowerCase(), synonyms.get(synonyms.size() - 2).toLowerCase()), fileName,
+						wordssWithSynonyms, wordssWithSynonyms.get(wordssWithSynonyms.size() - level), level - 1) == true) {
+					return true;
+				}
+			}
 		}
 		return false;
 	}
