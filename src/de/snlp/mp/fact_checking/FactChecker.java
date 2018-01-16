@@ -255,11 +255,6 @@ public class FactChecker {
 				System.out.println("statement: " + statement + "\tlevel: " + level + "");
 				if (synonyms.size() > 1) {
 					for (int i = 0; i < synonyms.size() - 1; i++) {
-						
-						// System.out.println("replace: " + synonyms.get(synonyms.size() - 1).toLowerCase());
-						// System.out.println("with: " + synonyms.get(synonyms.size() - 2).toLowerCase());
-						// System.out.println("combined: " + statement.replaceAll(synonyms.get(synonyms.size() - 1).toLowerCase(), synonyms.get(synonyms.size()
-						// - 2).toLowerCase()));
 						String wordToReplace="";
 						for (int j =0;j<synonyms.size();j++) {
 							if (statement.contains(synonyms.get(j))) {

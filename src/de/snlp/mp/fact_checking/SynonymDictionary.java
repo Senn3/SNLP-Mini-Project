@@ -38,7 +38,12 @@ public class SynonymDictionary {
 		
 		// Get stem of word, since only those are in the dictionary
 		WordnetStemmer stemmer = new WordnetStemmer(dict);
-		String stemmedWord = stemmer.findStems(word, type).get(0);
+		List<String> stems = stemmer.findStems(word, type);
+		String stemmedWord = "";
+		if(stems.isEmpty())
+			stemmedWord = word;
+		else
+			stemmedWord = stems.get(0);
 		
 		IIndexWord idxWord = dict.getIndexWord(stemmedWord, type);
 		// Word not contained in dictionary?
