@@ -57,7 +57,7 @@ public class FactChecker {
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		wordsWithSynonyms.addAll(nounsWithSynonyms);
 		wordsWithSynonyms.addAll(verbsWithSynonyms);
-		System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement, wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
+		System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement.toLowerCase(), wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
 				nounsWithSynonyms.size() + verbsWithSynonyms.size()));
 	}
 
@@ -226,9 +226,10 @@ public class FactChecker {
 			BufferedReader in = new BufferedReader(new FileReader(fileName));
 			String line = "";
 			while ((line = in.readLine()) != null) {
-				if (line.toLowerCase().contains(statement.toLowerCase()))
+				if (line.toLowerCase().contains(statement.toLowerCase())) {
 					in.close();
-				return true;
+					return true;
+				}
 			}
 			in.close();
 		} catch (FileNotFoundException e) {
@@ -245,15 +246,50 @@ public class FactChecker {
 	private static boolean isStatementAsAWholeInFileUsingSynonyms(String statement, String fileName, List<List<String>> wordssWithSynonyms,
 			List<String> synonyms, int level) {
 		if (level == 0) {
-			return isStatementAsAWholeInFile(statement, fileName);
+			if (isStatementAsAWholeInFile(statement, fileName))
+				return true;
 		} else {
-			for (int i = 0; i < synonyms.size(); i++) {
-				if (isStatementAsAWholeInFileUsingSynonyms(
-						statement.replaceAll(synonyms.get(synonyms.size() - 1).toLowerCase(), synonyms.get(synonyms.size() - 2).toLowerCase()), fileName,
-						wordssWithSynonyms, wordssWithSynonyms.get(wordssWithSynonyms.size() - level), level - 1) == true) {
-					return true;
+			if (isStatementAsAWholeInFile(statement, fileName)) {
+				return true;
+			} else {
+				System.out.println("statement: " + statement + "\tlevel: " + level + "");
+				if (synonyms.size() > 1) {
+					for (int i = 0; i < synonyms.size() - 1; i++) {
+						
+						// System.out.println("replace: " + synonyms.get(synonyms.size() - 1).toLowerCase());
+						// System.out.println("with: " + synonyms.get(synonyms.size() - 2).toLowerCase());
+						// System.out.println("combined: " + statement.replaceAll(synonyms.get(synonyms.size() - 1).toLowerCase(), synonyms.get(synonyms.size()
+						// - 2).toLowerCase()));
+						String wordToReplace="";
+						for (int j =0;j<synonyms.size();j++) {
+							if (statement.contains(synonyms.get(j))) {
+								wordToReplace = synonyms.get(j);
+								break;
+							}
+						}
+						
+						if (level != 1) {
+							if (isStatementAsAWholeInFileUsingSynonyms(
+									statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)),
+									fileName, wordssWithSynonyms, wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
+								return true;
+							}
+						} else {
+							if (isStatementAsAWholeInFileUsingSynonyms(
+									statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)),
+									fileName, wordssWithSynonyms, synonyms, level - 1)) {
+								return true;
+							}
+						}
+					}
+				} else {
+					if (isStatementAsAWholeInFileUsingSynonyms(statement, fileName, wordssWithSynonyms,
+							wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
+						return true;
+					}
 				}
 			}
+
 		}
 		return false;
 	}

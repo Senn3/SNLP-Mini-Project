@@ -53,9 +53,9 @@ public class SynonymDictionary {
 		
 		List<String> synonyms = new ArrayList<String>();
 		for(IWord w : synset.getWords())
-			synonyms.add(w.getLemma());
+			synonyms.add(w.getLemma().toLowerCase());
 		
-		synonyms.add(word);
+//		synonyms.add(word);
 		return synonyms;
 	}
 }

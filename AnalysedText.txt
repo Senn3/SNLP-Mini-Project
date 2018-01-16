@@ -4,7 +4,12 @@ NNP Germany case of 1
 VBG working nsubj Merkel 1
 VBG working aux is 1
 VBG working nmod chancellor 1
+VBG working cc and 1
+VBG working conj live 1
 VBG working punct . 1
 NN chancellor case as 1
 NN chancellor det the 1
 NN chancellor nmod Germany 1
+NN spot case in 1
+NN spot det a 1
+VB live nmod spot 1
