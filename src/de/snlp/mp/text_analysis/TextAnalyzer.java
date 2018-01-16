@@ -22,7 +22,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
-	private static String corpusName = "Wikipedia Corpus Cutted";
+	public static String corpusName = "Wikipedia Corpus Cutted";
 	private static File corpusFolder;
 
 	/**
