@@ -9,8 +9,6 @@ import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.snlp.mp.text_model.TextModel;
@@ -19,7 +17,7 @@ import edu.stanford.nlp.io.RuntimeIOException;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
-public class StanfordLibThread extends Thread {
+public class StanfordLib {
 
 	private static StanfordCoreNLP pipeline;
 
@@ -52,8 +50,7 @@ public class StanfordLibThread extends Thread {
 				URL url = new URL("https://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar");
 				FileUtils.copyURLToFile(url, file);
 			}
-			TextAnalyzer.log(
-					"Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
+			TextAnalyzer.log("Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
 		} catch (IOException e) {
 			TextAnalyzer.log("Download failed. Exit program.");
 			if (file.exists())
@@ -64,57 +61,40 @@ public class StanfordLibThread extends Thread {
 	}
 
 	/**
-	 * Die Number des Threads.
-	 */
-	private int thread;
-
-	/**
-	 * Der Name der Datei, dessen Text gerade verarbeitet wird. Wird ausschließlich zum loggen gebraucht.
-	 */
-	private String fileName;
-
-	/**
-	 * Der Inhalt der Datei, die verarbeitet werden soll.
-	 */
-	private String content;
-
-	public StanfordLibThread(int thread, String fileName, String content) {
-		this.thread = thread;
-		this.fileName = fileName;
-		this.content = content;
-	}
-
-	/**
 	 * Startet den Prozess, indem die Datei durch die StanfordNLP Library in ein json-String umgewandelt wird und anschließend in ein
 	 * TextModel-Objekt konvertiert wird.
 	 */
-	@Override
-	public void run() {
+	public static TextModel getTextModel(String content) {
 		try {
-			TextAnalyzer.log("Thread: " + thread + " - Process: " + fileName);
+
+			if (pipeline == null) {
+				TextAnalyzer.log("The StandfordLibrary hasn't been initialized yet. Use the method \"initStandFordLib\" first.");
+				return null;
+			}
 			ObjectMapper mapper = new ObjectMapper();
-			String json = getJsonFile();
-			TextAnalyzer.setTextModelResult(thread, mapper.readValue(json, TextModel.class));
-		} catch (JsonParseException e) {
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
+			String json = getJsonFile(content);
+			json = json.replaceAll("\"corefs\": \\{", "\"corefs\": \\[{").substring(0, json.toCharArray().length - 2) + " }]}";
+
+			// System.out.println(json);
+
+			return mapper.readValue(json, TextModel.class);
 		} catch (IOException e) {
 			e.printStackTrace();
+			TextAnalyzer.log("Error creating the text model for the content: " + content);
+			return null;
 		}
-	}
-
-	public String getFileName() {
-		return fileName;
 	}
 
 	/**
 	 * Wendet die StanfordNLP an und erstellt aus dem Resulutat eine Json-String
-	 * @param Der Name des Artikels, der für das Verwerfen von Fehlermeldungen gebraucht wird
-	 * @param Der unbearbeitete Kontent des Artikels
+	 * 
+	 * @param Der
+	 *            Name des Artikels, der für das Verwerfen von Fehlermeldungen gebraucht wird
+	 * @param Der
+	 *            unbearbeitete Kontent des Artikels
 	 * @return Der Json-String von dem Artikel
 	 */
-	private String getJsonFile() {
+	private static String getJsonFile(String content) {
 		try {
 			Annotation annotation = new Annotation(content);
 			Writer writer = new StringWriter();
@@ -124,7 +104,7 @@ public class StanfordLibThread extends Thread {
 			return writer.toString();
 		} catch (IOException e) {
 			e.printStackTrace();
-			TextAnalyzer.log("Error creating the json-file for the article: " + fileName);
+			TextAnalyzer.log("Error creating the json-file for the content: " + content);
 			return null;
 		}
 
