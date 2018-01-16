@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import edu.mit.jwi.item.POS;
 
@@ -36,6 +37,12 @@ public class FactChecker {
 	 */
 	private static List<String> names = new ArrayList<String>();
 
+	/*
+	 * List that contains all the words (nouns, names and verbs), that are part of the statement or a synonym of that, and which have been found
+	 * within a wikipedia article in this exact combination.
+	 */
+	private static List<String> usedWords = new ArrayList<String>();
+
 	public static void main(String[] args) {
 		String statement = getStatement();
 		getWordsFromStatement();
@@ -57,8 +64,18 @@ public class FactChecker {
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		wordsWithSynonyms.addAll(nounsWithSynonyms);
 		wordsWithSynonyms.addAll(verbsWithSynonyms);
-		System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement.toLowerCase(), wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
-				nounsWithSynonyms.size() + verbsWithSynonyms.size()));
+//		System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement.toLowerCase(), wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
+//				nounsWithSynonyms.size() + verbsWithSynonyms.size()));
+
+		for (String s : names) {
+			List<List<String>> list = new ArrayList<List<String>>();
+			list.add(new ArrayList<String>());
+			list.get(0).add(s);
+			wordsWithSynonyms.addAll(list);
+		}
+		System.out.println("Test: "
+				+ getLineOfWordsOfStatementInFileUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(0), "", wikiFile, wordsWithSynonyms.size(), wordsWithSynonyms.size()));
+		System.out.println(usedWords);
 	}
 
 	/*
@@ -83,8 +100,7 @@ public class FactChecker {
 				if (names.size() - numNames > 1)
 					numNames++;
 
-				if ((!previous.equals(wordsFromCurrentLine[1]) || (!wordsFromCurrentLine[2].equals("compound") && compoundSeen)) && !start
-						&& compound[0] != null) {
+				if ((!previous.equals(wordsFromCurrentLine[1]) || (!wordsFromCurrentLine[2].equals("compound") && compoundSeen)) && !start && compound[0] != null) {
 					addCompoundWordToList(compound, type, numNouns, numVerbs, numNames);
 					Arrays.fill(compound, null);
 					compoundSeen = false;
@@ -158,8 +174,8 @@ public class FactChecker {
 				} else
 					nouns.add(wordsFromCurrentLine[1]);
 			return "NN";
-		} else if (wordsFromCurrentLine[0].equals("VB") || wordsFromCurrentLine[0].equals("VBD") || wordsFromCurrentLine[0].equals("VBG")
-				|| wordsFromCurrentLine[0].equals("VBN") || wordsFromCurrentLine[0].equals("VBP") || wordsFromCurrentLine[0].equals("VBZ")) {
+		} else if (wordsFromCurrentLine[0].equals("VB") || wordsFromCurrentLine[0].equals("VBD") || wordsFromCurrentLine[0].equals("VBG") || wordsFromCurrentLine[0].equals("VBN")
+				|| wordsFromCurrentLine[0].equals("VBP") || wordsFromCurrentLine[0].equals("VBZ")) {
 			if (!verbs.contains(wordsFromCurrentLine[1]))
 				if (numVerbs > 0) {
 					if (!verbs.get(numVerbs - 1).contains(wordsFromCurrentLine[1]))
@@ -240,11 +256,79 @@ public class FactChecker {
 		return false;
 	}
 
+	private static String getLineOfWordsOfStatementInFileUsingSynonyms(List<List<String>> wordsWithSynonyms, List<String> words, String wordsToCheck, String fileName, int level,
+			int maxLevel) {
+		if (level == 0) {
+			String line = getLineOfWords(wordsToCheck, fileName);
+
+			System.out.println(line);
+			if (!line.isEmpty())
+				return line;
+		} else {
+			for (int i = 0; i < words.size(); i++) {
+				if (level == maxLevel) {
+					wordsToCheck = "";
+					usedWords.clear();
+				}
+
+				if (i != 0 && level != maxLevel) {
+					wordsToCheck = wordsToCheck.replaceAll(words.get(i - 1) + "[A-Za-z0-9]*,?", words.get(i)) + ",";
+					Collections.replaceAll(usedWords, words.get(i - 1), words.get(i));
+
+					for (int j = usedWords.size() - 1; j > level; j--)
+						usedWords.remove(j);
+				} else {
+					wordsToCheck += words.get(i) + ",";
+					usedWords.add(words.get(i));
+				}
+				String line = "";
+				if (level != 1) {
+					line = getLineOfWordsOfStatementInFileUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(wordsWithSynonyms.size() - level + 1), wordsToCheck, fileName,
+							level - 1, maxLevel);
+					if (!line.isEmpty())
+						return line;
+				} else {
+					line = getLineOfWordsOfStatementInFileUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(0), wordsToCheck, fileName, level - 1, maxLevel);
+					if (!line.isEmpty())
+						return line;
+				}
+			}
+		}
+		return "";
+	}
+
+	private static String getLineOfWords(String wordsToCheck, String fileName) {
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(fileName));
+			String line = "";
+			while ((line = in.readLine()) != null) {
+				String[] words = wordsToCheck.split(",");
+				boolean contained = true;
+
+				for (String s : words) {
+					if (!line.toLowerCase().contains(s.toLowerCase())) {
+						contained = false;
+						break;
+					}
+				}
+
+				if (contained == true) {
+					return line;
+				}
+			}
+			in.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
 	/*
 	 * 
 	 */
-	private static boolean isStatementAsAWholeInFileUsingSynonyms(String statement, String fileName, List<List<String>> wordssWithSynonyms,
-			List<String> synonyms, int level) {
+	private static boolean isStatementAsAWholeInFileUsingSynonyms(String statement, String fileName, List<List<String>> wordssWithSynonyms, List<String> synonyms, int level) {
 		if (level == 0) {
 			if (isStatementAsAWholeInFile(statement, fileName))
 				return true;
@@ -255,36 +339,28 @@ public class FactChecker {
 				System.out.println("statement: " + statement + "\tlevel: " + level + "");
 				if (synonyms.size() > 1) {
 					for (int i = 0; i < synonyms.size() - 1; i++) {
-						
-						// System.out.println("replace: " + synonyms.get(synonyms.size() - 1).toLowerCase());
-						// System.out.println("with: " + synonyms.get(synonyms.size() - 2).toLowerCase());
-						// System.out.println("combined: " + statement.replaceAll(synonyms.get(synonyms.size() - 1).toLowerCase(), synonyms.get(synonyms.size()
-						// - 2).toLowerCase()));
-						String wordToReplace="";
-						for (int j =0;j<synonyms.size();j++) {
+						String wordToReplace = "";
+						for (int j = 0; j < synonyms.size(); j++) {
 							if (statement.contains(synonyms.get(j))) {
 								wordToReplace = synonyms.get(j);
 								break;
 							}
 						}
-						
+
 						if (level != 1) {
-							if (isStatementAsAWholeInFileUsingSynonyms(
-									statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)),
-									fileName, wordssWithSynonyms, wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
+							if (isStatementAsAWholeInFileUsingSynonyms(statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)), fileName, wordssWithSynonyms,
+									wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
 								return true;
 							}
 						} else {
-							if (isStatementAsAWholeInFileUsingSynonyms(
-									statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)),
-									fileName, wordssWithSynonyms, synonyms, level - 1)) {
+							if (isStatementAsAWholeInFileUsingSynonyms(statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)), fileName, wordssWithSynonyms,
+									synonyms, level - 1)) {
 								return true;
 							}
 						}
 					}
 				} else {
-					if (isStatementAsAWholeInFileUsingSynonyms(statement, fileName, wordssWithSynonyms,
-							wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
+					if (isStatementAsAWholeInFileUsingSynonyms(statement, fileName, wordssWithSynonyms, wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
 						return true;
 					}
 				}
