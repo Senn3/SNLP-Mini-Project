@@ -2,6 +2,8 @@ package de.snlp.mp.text_model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Corefs {
 
 	private int id;
@@ -15,6 +17,7 @@ public class Corefs {
 	private int headIndex;
 	private int sentNum;
 	private List<Integer> position;
+	@JsonProperty("isRepresentativeMention")
 	private boolean isRepresentativeMention;
 
 	public int getId() {
