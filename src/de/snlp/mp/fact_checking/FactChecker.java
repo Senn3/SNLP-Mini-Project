@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import edu.mit.jwi.item.POS;
@@ -16,11 +15,6 @@ public class FactChecker {
 	 * The name of the file, which contains the statement to proof.
 	 */
 	private static final String statementFile = "Wikipedia Corpus Cutted/train.txt";
-
-	/*
-	 * The name of the file, which contains the analyzed statement.
-	 */
-	private static final String analyzedStatementFile = "AnalysedText.txt";
 
 	/*
 	 * List that contains all verbs from the statement
@@ -44,12 +38,6 @@ public class FactChecker {
 	private static List<String> usedWords = new ArrayList<String>();
 
 	public static void main(String[] args) {
-		String statement = getStatement();
-		getWordsFromStatement();
-
-		System.out.println(verbs);
-		System.out.println(nouns);
-		System.out.println(names);
 
 		// TODO don't use stems of words to compare with text
 		List<List<String>> nounsWithSynonyms = getSynonyms(nouns, POS.NOUN);
@@ -64,8 +52,8 @@ public class FactChecker {
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		wordsWithSynonyms.addAll(nounsWithSynonyms);
 		wordsWithSynonyms.addAll(verbsWithSynonyms);
-//		System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement.toLowerCase(), wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
-//				nounsWithSynonyms.size() + verbsWithSynonyms.size()));
+		// System.out.println(isStatementAsAWholeInFileUsingSynonyms(statement.toLowerCase(), wikiFile, wordsWithSynonyms, nounsWithSynonyms.get(0),
+		// nounsWithSynonyms.size() + verbsWithSynonyms.size()));
 
 		for (String s : names) {
 			List<List<String>> list = new ArrayList<List<String>>();
@@ -76,133 +64,9 @@ public class FactChecker {
 		System.out.println("Test: "
 				+ getLineOfWordsOfStatementInFileUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(0), "", wikiFile, wordsWithSynonyms.size(), wordsWithSynonyms.size()));
 		System.out.println(usedWords);
-	}
-
-	/*
-	 * Gets verbs and nouns from analyzed facts Could cause problems if executed on more than one fact at a time.
-	 */
-	private static void getWordsFromStatement() {
-		try {
-			// Read in analyzed fact
-			BufferedReader in = new BufferedReader(new FileReader(analyzedStatementFile));
-			String line = "", previous = "", type = "";
-			int numNouns = 0, numVerbs = 0, numNames = 0;
-			boolean start = true, compoundSeen = false;
-			String[] compound = new String[10];
-
-			while ((line = in.readLine()) != null) {
-				String[] wordsFromCurrentLine = line.split(" ");
-
-				if (nouns.size() - numNouns > 1)
-					numNouns++;
-				if (verbs.size() - numVerbs > 1)
-					numVerbs++;
-				if (names.size() - numNames > 1)
-					numNames++;
-
-				if ((!previous.equals(wordsFromCurrentLine[1]) || (!wordsFromCurrentLine[2].equals("compound") && compoundSeen)) && !start && compound[0] != null) {
-					addCompoundWordToList(compound, type, numNouns, numVerbs, numNames);
-					Arrays.fill(compound, null);
-					compoundSeen = false;
-
-					switch (type) {
-					case "NN":
-						numNouns++;
-						break;
-
-					case "VB":
-						numVerbs++;
-						break;
-
-					case "NNP":
-						numNames++;
-						break;
-					}
-				}
-				type = getWordTypeAndSaveWordToList(wordsFromCurrentLine, numNouns, numVerbs, numNames);
-
-				if (wordsFromCurrentLine[2].equals("compound")) {
-					compound = getCompoundWordArray(wordsFromCurrentLine, compound);
-					compoundSeen = true;
-				}
-				start = false;
-				previous = wordsFromCurrentLine[1];
-			}
-			in.close();
-
-			// add last compound word, happens if compound is in last line of file
-			if (compound[0] != null) {
-				addCompoundWordToList(compound, type, numNouns, numVerbs, numNames);
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void addCompoundWordToList(String[] compound, String type, int numNouns, int numVerbs, int numNames) {
-		String compoundWord = "";
-		for (int i = compound.length - 1; i >= 0; i--) {
-			if (compound[i] != null) {
-				compoundWord = compound[i] + " ";
-			} else
-				continue;
-
-			switch (type) {
-			case "NN":
-				nouns.set(numNouns, compoundWord + nouns.get(numNouns));
-				break;
-
-			case "VB":
-				verbs.set(numVerbs, compoundWord + verbs.get(numVerbs));
-				break;
-
-			case "NNP":
-				names.set(numNames, compoundWord + names.get(numNames));
-				break;
-			}
-		}
-	}
-
-	private static String getWordTypeAndSaveWordToList(String[] wordsFromCurrentLine, int numNouns, int numVerbs, int numNames) {
-		if (wordsFromCurrentLine[0].equals("NN") || wordsFromCurrentLine[0].equals("NNS")) {
-			if (!nouns.contains(wordsFromCurrentLine[1]))
-				if (numNouns > 0) {
-					if (!nouns.get(numNouns - 1).contains(wordsFromCurrentLine[1]))
-						nouns.add(wordsFromCurrentLine[1]);
-				} else
-					nouns.add(wordsFromCurrentLine[1]);
-			return "NN";
-		} else if (wordsFromCurrentLine[0].equals("VB") || wordsFromCurrentLine[0].equals("VBD") || wordsFromCurrentLine[0].equals("VBG") || wordsFromCurrentLine[0].equals("VBN")
-				|| wordsFromCurrentLine[0].equals("VBP") || wordsFromCurrentLine[0].equals("VBZ")) {
-			if (!verbs.contains(wordsFromCurrentLine[1]))
-				if (numVerbs > 0) {
-					if (!verbs.get(numVerbs - 1).contains(wordsFromCurrentLine[1]))
-						verbs.add(wordsFromCurrentLine[1]);
-				} else
-					verbs.add(wordsFromCurrentLine[1]);
-			return "VB";
-		} else if (wordsFromCurrentLine[0].equals("NNP") || wordsFromCurrentLine[0].equals("NNPS")) {
-			if (!names.contains(wordsFromCurrentLine[1]))
-				if (numNames > 0) {
-					if (!names.get(numNames - 1).contains(wordsFromCurrentLine[1]))
-						names.add(wordsFromCurrentLine[1]);
-				} else
-					names.add(wordsFromCurrentLine[1]);
-			return "NNP";
-		}
-		return "";
-	}
-
-	private static String[] getCompoundWordArray(String[] wordsFromCurrentLine, String[] compound) {
-		for (int i = 0; i < compound.length; i++) {
-			if (compound[i] == null) {
-				compound[i] = wordsFromCurrentLine[3];
-				break;
-			}
-		}
-		return compound;
+		
+		String test = "Angela Merkel is working as the chancellor of Germany and inhabit in a topographic place. We need to fill this string with some nonesense in order to get better results.";
+		System.out.println("Bool: " + areElementsOfListInStringUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(0), "", test, wordsWithSynonyms.size(), wordsWithSynonyms.size()));
 	}
 
 	private static List<List<String>> getSynonyms(List<String> words, POS type) {
@@ -281,6 +145,7 @@ public class FactChecker {
 					wordsToCheck += words.get(i) + ",";
 					usedWords.add(words.get(i));
 				}
+
 				String line = "";
 				if (level != 1) {
 					line = getLineOfWordsOfStatementInFileUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(wordsWithSynonyms.size() - level + 1), wordsToCheck, fileName,
@@ -322,51 +187,63 @@ public class FactChecker {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return "";
+		return null;
 	}
 
-	/*
-	 * 
+	/**
+	 * Checks whether all words of a given list or replaced by any of their synonyms are contained inside of a given string.
+	 *  
+	 * @param wordsWithSynonyms A list of lists of words, which shall be found within the string.
+	 * @param words Has to be the first list of words of wordsWithSynonyms.
+	 * @param wordsToCheck Contains the words that are checked in the current recursion. Has to be an empty string "".
+	 * @param text The text to look in.
+	 * @param level The level of the current recursion. Start at maxLevel.
+	 * @param maxLevel The maximum level of the recursion. Has to be the size of wordsWithSynonyms.
+	 * @return
 	 */
-	private static boolean isStatementAsAWholeInFileUsingSynonyms(String statement, String fileName, List<List<String>> wordssWithSynonyms, List<String> synonyms, int level) {
+	public static boolean areElementsOfListInStringUsingSynonyms(List<List<String>> wordsWithSynonyms, List<String> words, String wordsToCheck, String text, int level, int maxLevel) {
 		if (level == 0) {
-			if (isStatementAsAWholeInFile(statement, fileName))
-				return true;
+			return areWordsInText(wordsToCheck, text);
 		} else {
-			if (isStatementAsAWholeInFile(statement, fileName)) {
-				return true;
-			} else {
-				System.out.println("statement: " + statement + "\tlevel: " + level + "");
-				if (synonyms.size() > 1) {
-					for (int i = 0; i < synonyms.size() - 1; i++) {
-						String wordToReplace = "";
-						for (int j = 0; j < synonyms.size(); j++) {
-							if (statement.contains(synonyms.get(j))) {
-								wordToReplace = synonyms.get(j);
-								break;
-							}
-						}
+			for (int i = 0; i < words.size(); i++) {
+				if (level == maxLevel)
+					wordsToCheck = "";
 
-						if (level != 1) {
-							if (isStatementAsAWholeInFileUsingSynonyms(statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)), fileName, wordssWithSynonyms,
-									wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
-								return true;
-							}
-						} else {
-							if (isStatementAsAWholeInFileUsingSynonyms(statement.replaceAll(wordToReplace, synonyms.get(synonyms.size() - 1 - i)), fileName, wordssWithSynonyms,
-									synonyms, level - 1)) {
-								return true;
-							}
-						}
-					}
-				} else {
-					if (isStatementAsAWholeInFileUsingSynonyms(statement, fileName, wordssWithSynonyms, wordssWithSynonyms.get(wordssWithSynonyms.size() - level + 1), level - 1)) {
+				if (i != 0 && level != maxLevel)
+					wordsToCheck = wordsToCheck.replaceAll(words.get(i - 1) + "[A-Za-z0-9]*,?", words.get(i)) + ",";
+				else
+					wordsToCheck += words.get(i) + ",";
+
+				boolean isInText = false;
+				if (level != 1) {
+					isInText = areElementsOfListInStringUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(wordsWithSynonyms.size() - level + 1), wordsToCheck, text,
+							level - 1, maxLevel);
+					if (isInText)
 						return true;
-					}
+				} else {
+					isInText = areElementsOfListInStringUsingSynonyms(wordsWithSynonyms, wordsWithSynonyms.get(0), wordsToCheck, text, level - 1, maxLevel);
+					if (isInText)
+						return true;
 				}
 			}
-
 		}
+		return false;
+	}
+
+	private static boolean areWordsInText(String wordsToCheck, String text) {
+
+		String[] words = wordsToCheck.split(",");
+		boolean contained = true;
+
+		for (String s : words) {
+			if (!text.toLowerCase().contains(s.toLowerCase())) {
+				contained = false;
+				break;
+			}
+		}
+
+		if (contained == true)
+			return true;
 		return false;
 	}
 }
