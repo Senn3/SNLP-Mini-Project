@@ -16,9 +16,11 @@ import org.apache.commons.io.FileUtils;
 
 import de.snlp.mp.fact_checking.Fact;
 import de.snlp.mp.fact_checking.FactFileHandler;
+import de.snlp.mp.fact_checking.SynonymDictionary;
 import de.snlp.mp.text_model.Corefs;
 import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.text_model.Token;
+import edu.mit.jwi.item.POS;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
 public class TextAnalyzer extends StanfordCoreNLP {
@@ -39,6 +41,8 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 * Die Datei in der die Namen aller abgearbeiteten Dokumente gespeichert werden, damit das Programm zwischendruch gestoppt werden kann.
 	 */
 	private static final File processedFactsFile = new File("ProcessedFacts.txt");
+
+	private static SynonymDictionary synonymDictionary = new SynonymDictionary();
 
 	public static void main(String[] args) {
 
@@ -83,16 +87,29 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				List<String> nouns = getNounsFromTextModel(model, f.getFactStatement());
 
 				List<File> matches = new ArrayList<File>();
-				goThroughCorpus(new File(corpusName), matches, nouns);
+				goThroughCorpus(new File(corpusName), matches, getSynonyms(nouns, POS.NOUN));
 				addFilesToDir(factId, matches);
 				processedFactsList.add(factId);
 
 			}
 		}
 
-		writeListToFile(processedFactsFile, new ArrayList<Object>(processedFactsList), false);
+		// writeListToFile(processedFactsFile, new ArrayList<Object>(processedFactsList), false);
 		log("Finished program. The result is saved.");
 		System.exit(0);
+	}
+
+	private static List<List<String>> getSynonyms(List<String> words, POS type) {
+		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
+		for (int i = 0; i < words.size(); i++) {
+			wordsWithSynonyms.add(new ArrayList<String>());
+
+			for (String st : synonymDictionary.getSynonyms(words.get(i), type))
+				wordsWithSynonyms.get(i).add(st.replaceAll("[^a-zA-Z]", " "));
+			if (wordsWithSynonyms.get(i).size() == 0)
+				wordsWithSynonyms.get(i).add(words.get(i));
+		}
+		return wordsWithSynonyms;
 	}
 
 	/**
@@ -158,15 +175,30 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		return nouns;
 	}
 
-	private static void goThroughCorpus(File f, List<File> matches, List<String> nouns) {
+	private static void goThroughCorpus(File f, List<File> matches, List<List<String>> synonyms) {
 		if (f.isDirectory()) {
 			for (File child : f.listFiles())
-				goThroughCorpus(child, matches, nouns);
+				goThroughCorpus(child, matches, synonyms);
 		} else {
-			if (readFileContent(f).contains(nouns.get(0))) {
-				matches.add(f);
+			String content = readFileContent(f);
+			boolean[] eachWordInList = new boolean[synonyms.size()];
+			for (int i = 0; i < eachWordInList.length; i++) {
+				for (String s : synonyms.get(i)) {
+					if (content.contains(s))
+						eachWordInList[i] = true;
+				}
 			}
+
+			if (arrayIsTrue(eachWordInList))
+				matches.add(f);
 		}
+	}
+
+	private static boolean arrayIsTrue(boolean[] a) {
+		for (boolean value : a)
+			if (!value)
+				return false;
+		return true;
 	}
 
 	private static String readFileContent(File f) {
