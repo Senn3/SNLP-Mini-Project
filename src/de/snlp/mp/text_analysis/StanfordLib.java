@@ -19,13 +19,13 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
 public class StanfordLib {
 
-	private static StanfordCoreNLP pipeline;
+	private StanfordCoreNLP pipeline;
 
 	/**
 	 * Initialisiert die StanfordCoreNLP Bibliothek. Falls das Modell für die englische Sprache fehlt wird das Programm beendet und eine
 	 * entsprechende Nachricht ausgegeben.
 	 */
-	public static void initStandFordLib() {
+	public StanfordLib() {
 		try {
 			TextAnalyzer.log("Initialze StanfordCoreNLP library.");
 			Properties props = new Properties();
@@ -42,7 +42,7 @@ public class StanfordLib {
 	/**
 	 * Lädt das Modell für die englische Sprache herunter und beendet das Programm, falls ein Fehler beim Download auftritt.
 	 */
-	private static void donwloadModel() {
+	private void donwloadModel() {
 		File file = new File("stanford-english-corenlp-models.jar");
 		try {
 			if (!file.exists()) {
@@ -64,7 +64,7 @@ public class StanfordLib {
 	 * Startet den Prozess, indem die Datei durch die StanfordNLP Library in ein json-String umgewandelt wird und anschließend in ein
 	 * TextModel-Objekt konvertiert wird.
 	 */
-	public static TextModel getTextModel(String content) {
+	public TextModel getTextModel(String content) {
 		try {
 
 			if (pipeline == null) {
@@ -94,7 +94,7 @@ public class StanfordLib {
 	 *            unbearbeitete Kontent des Artikels
 	 * @return Der Json-String von dem Artikel
 	 */
-	private static String getJsonFile(String content) {
+	private String getJsonFile(String content) {
 		try {
 			Annotation annotation = new Annotation(content);
 			Writer writer = new StringWriter();

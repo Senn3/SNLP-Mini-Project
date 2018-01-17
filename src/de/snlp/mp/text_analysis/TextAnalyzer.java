@@ -64,7 +64,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		// test.add("Angela");
 		// goThroughCorpus(new File(corpusName), new ArrayList<File>(), test);
 
-		StanfordLib.initStandFordLib();
+		StanfordLib stanfordLib = new StanfordLib();
 		List<Fact> facts = FactFileHandler.readFactsFromFile();
 		readProcesseFacts();
 		log(processedFactsList.size() + " out of " + facts.size() + " facts are already processed. ");
@@ -83,7 +83,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				log("Process fact: " + f.getFactId() + " - " + f.getFactStatement());
 				createFactDirs(factId);
 				String statement = f.getFactStatement().replaceAll("\\?", "");
-				TextModel model = StanfordLib.getTextModel(statement);
+				TextModel model = stanfordLib.getTextModel(statement);
 				List<String> nouns = getNounsFromTextModel(model, f.getFactStatement());
 
 				List<File> matches = new ArrayList<File>();
@@ -149,7 +149,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	private static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
 		List<String> nouns = new ArrayList<String>();
-		for (Corefs c : model.getCorefsList()) {
+		for (Corefs c : model.getCorefs()) {
 			if (c.getType().equals("PROPER")) {
 				if (c.getText().contains(" , ")) {
 					nouns.add(c.getText().split(" , ")[0]);
