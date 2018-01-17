@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.snlp.mp.text_model.CorefsHeader;
 import de.snlp.mp.text_model.TextModel;
 import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.io.RuntimeIOException;
@@ -74,7 +75,7 @@ public class StanfordLib {
 			ObjectMapper mapper = new ObjectMapper();
 			String json = getJsonFile(content);
 			json = json.replaceAll("\"corefs\": \\{", "\"corefs\": \\[{").substring(0, json.toCharArray().length - 2) + " }]}";
-
+			CorefsHeader.clearCorefs();
 			// System.out.println(json);
 
 			return mapper.readValue(json, TextModel.class);

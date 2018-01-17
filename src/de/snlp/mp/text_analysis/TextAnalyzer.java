@@ -25,10 +25,11 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
 public class TextAnalyzer extends StanfordCoreNLP {
 
+	private static final boolean DEBUG = true;
+
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
-	public static String corpusName = "Wikipedia Corpus Cutted";
-	private static File corpusFolder;
+	public static File corpus = new File("F://Wikipedia Corpus Cutted");
 
 	private static File factFolder = new File("FactRelatedTexts");
 
@@ -44,16 +45,21 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	private static SynonymDictionary synonymDictionary = new SynonymDictionary();
 
+	private static int fileCounter;
+
+	private static int currentfileCounter;
+
+	private static int progress;
+
 	public static void main(String[] args) {
 
 		if (args.length == 0) {
-			log("No argument found. Use \"" + corpusName + "\" as corpus folder.");
+			log("No argument found. Use \"" + corpus.getName() + "\" as corpus folder.");
 		} else {
-			corpusName = args[1];
+			corpus = new File(args[1]);
 		}
-		corpusFolder = new File(corpusName);
-		if (!corpusFolder.exists()) {
-			log("Cannot find the folder: " + corpusFolder.getAbsolutePath());
+		if (!corpus.exists()) {
+			log("Cannot find the folder: " + corpus.getAbsolutePath());
 			return;
 		}
 
@@ -69,6 +75,9 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		readProcesseFacts();
 		log(processedFactsList.size() + " out of " + facts.size() + " facts are already processed. ");
 
+		setFileCount(corpus);
+		log("Found " + fileCounter + " files in the corpus.");
+
 		log("This program should be stopped with: \"" + ExitThread.QUIT_COMMAND + "\".");
 		log("DONOT use cmd + c, otherwise no calculations will be saved.");
 		ExitThread exitThread = new ExitThread();
@@ -76,6 +85,8 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 		for (Fact f : facts) {
 			String factId = String.valueOf(f.getFactId());
+			progress = 0;
+			currentfileCounter = 0;
 			if (!exitThread.isAlive()) {
 				break;
 			}
@@ -87,14 +98,14 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				List<String> nouns = getNounsFromTextModel(model, f.getFactStatement());
 
 				List<File> matches = new ArrayList<File>();
-				goThroughCorpus(new File(corpusName), matches, getSynonyms(nouns, POS.NOUN));
+				goThroughCorpus(corpus, matches, getSynonyms(nouns, POS.NOUN));
 				addFilesToDir(factId, matches);
 				processedFactsList.add(factId);
 
 			}
 		}
 
-		// writeListToFile(processedFactsFile, new ArrayList<Object>(processedFactsList), false);
+		writeListToFile(processedFactsFile, new ArrayList<Object>(processedFactsList), false);
 		log("Finished program. The result is saved.");
 		System.exit(0);
 	}
@@ -109,7 +120,20 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			if (wordsWithSynonyms.get(i).size() == 0)
 				wordsWithSynonyms.get(i).add(words.get(i));
 		}
+		if (DEBUG)
+			printSynonymList(wordsWithSynonyms);
 		return wordsWithSynonyms;
+	}
+
+	private static void printSynonymList(List<List<String>> wordsWithSynonyms) {
+		String output = "";
+		for (List<String> list : wordsWithSynonyms) {
+			for (String word : list) {
+				output += (word + " - ");
+			}
+		}
+		output = output.substring(0, output.toCharArray().length - 3);
+		log("Found following nouns: " + output);
 	}
 
 	/**
@@ -168,10 +192,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 		}
 
-		String n = "";
-		for (String s : nouns)
-			n += (s + " - ");
-		log("Found following nouns: " + n);
 		return nouns;
 	}
 
@@ -189,9 +209,27 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				}
 			}
 
-			if (arrayIsTrue(eachWordInList))
+			if (arrayIsTrue(eachWordInList)) {
+				if (DEBUG)
+					log("Found file: " + f.getName());
 				matches.add(f);
+			}
+
+			if (DEBUG) {
+				currentfileCounter++;
+				double v = (double) currentfileCounter / (double) fileCounter;
+				for (int i = 1; i <= 20; i++) {
+					if (v >= i * 0.05 && v < (i + 1) * 0.05 && i * 5 != progress) {
+						progress = i * 5;
+						if (progress == 100)
+							System.out.println(progress + "%");
+						else
+							System.out.print(progress + "% - ");
+					}
+				}
+			}
 		}
+
 	}
 
 	private static boolean arrayIsTrue(boolean[] a) {
@@ -221,6 +259,17 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				FileUtils.copyFile(f, new File(factFolder + "/" + id + "/" + f.getName()));
 			} catch (IOException e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	private static void setFileCount(File folder) {
+		for (File f : folder.listFiles()) {
+			if (f.isDirectory())
+				setFileCount(f);
+			else if (f.getName().endsWith(".txt")) {
+				fileCounter++;
+
 			}
 		}
 	}

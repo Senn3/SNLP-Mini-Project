@@ -35,4 +35,8 @@ public class CorefsHeader {
 	protected static List<Corefs> getCorefs() {
 		return corefs;
 	}
+
+	public static void clearCorefs() {
+		corefs = new ArrayList<Corefs>();
+	}
 }

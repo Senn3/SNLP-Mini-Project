@@ -14,8 +14,8 @@ public class WikipediaExtractor {
 	private static final String START_TOKEN = "<doc";
 	private static final String END_TOKEN = "</doc>";
 
-	private static String inputFolder = "Test";
-	private static String outputFolder = "Output";
+	private static String inputFolder = "F://Wikipedia Corpus";
+	private static String outputFolder = "F://Test";
 
 	private static int process = 0;
 	private static long currentfileCount = 0;
@@ -39,7 +39,6 @@ public class WikipediaExtractor {
 		readInput(new File(inputFolder));
 		System.out.println("\nFinished process...");
 		System.out.println("Ignore " + counter + " files");
-
 	}
 
 	private static void setFileCount(File folder) {
@@ -163,10 +162,22 @@ public class WikipediaExtractor {
 
 	private static String createPath(String name) {
 		name = convertToWindowsFileNameRules(name);
-		Character firstChar = name.toUpperCase().charAt(0);
-		if (!Character.isAlphabetic(firstChar))
-			firstChar = 'A';
-		File parent = new File(outputFolder + "/" + firstChar.toString());
+		Character firstChar;
+		Character secondChar;
+		Character thirdChar;
+		if (name.toCharArray().length >= 1 && Character.isAlphabetic(name.toUpperCase().charAt(0)))
+			firstChar = name.toUpperCase().charAt(0);
+		else
+			firstChar = getRandomChar();
+		if (name.toCharArray().length >= 2 && Character.isAlphabetic(name.toUpperCase().charAt(1)))
+			secondChar = name.toUpperCase().charAt(1);
+		else
+			secondChar = getRandomChar();
+		if (name.toCharArray().length >= 3 && Character.isAlphabetic(name.toUpperCase().charAt(2)))
+			thirdChar = name.toUpperCase().charAt(2);
+		else
+			thirdChar = getRandomChar();
+		File parent = new File(outputFolder + "/" + firstChar.toString() + "/" + secondChar.toString() + "/" + thirdChar.toString());
 		if (!parent.isDirectory())
 			parent.mkdirs();
 		return parent.getPath() + "/" + name + ".txt";
@@ -182,6 +193,10 @@ public class WikipediaExtractor {
 			e.printStackTrace();
 		}
 		return counter;
+	}
+
+	private static char getRandomChar() {
+		return (char) ((int) (Math.random() * 26 + 65));
 	}
 
 	private static String convertToWindowsFileNameRules(String name) {
