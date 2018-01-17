@@ -1,60 +1,38 @@
 package de.snlp.mp.text_model;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class CorefsHeader {
 
-	@JsonProperty("1")
-	private List<Corefs> one;
-	@JsonProperty("2")
-	private List<Corefs> two;
-	@JsonProperty("3")
-	private List<Corefs> three;
-	@JsonProperty("4")
-	private List<Corefs> four;
-	@JsonProperty("5")
-	private List<Corefs> five;
+	private static List<Corefs> corefs = new ArrayList<Corefs>();
 
-	public List<Corefs> getOne() {
-		return one;
+	@SuppressWarnings("unchecked")
+	@JsonAnySetter
+	public void convertCorefs(String name, Object o) {
+		ArrayList<LinkedHashMap<String, Object>> list = (ArrayList<LinkedHashMap<String, Object>>) o;
+		for (LinkedHashMap<String, Object> map : list) {
+			Corefs c = new Corefs();
+			c.setId((Integer) map.get("id"));
+			c.setText((String) map.get("text"));
+			c.setType((String) map.get("type"));
+			c.setNumber((String) map.get("number"));
+			c.setGender((String) map.get("gender"));
+			c.setAnimacy((String) map.get("animacy"));
+			c.setStartIndex((Integer) map.get("startIndex"));
+			c.setEndIndex((Integer) map.get("endIndex"));
+			c.setHeadIndex((Integer) map.get("headIndex"));
+			c.setSentNum((Integer) map.get("sentNum"));
+			c.setPosition((List<Integer>) map.get("position"));
+			c.setRepresentativeMention((Boolean) map.get("isRepresentativeMention"));
+			corefs.add(c);
+		}
 	}
 
-	public void setOne(List<Corefs> one) {
-		this.one = one;
+	protected static List<Corefs> getCorefs() {
+		return corefs;
 	}
-
-	public List<Corefs> getTwo() {
-		return two;
-	}
-
-	public void setTwo(List<Corefs> two) {
-		this.two = two;
-	}
-
-	public List<Corefs> getThree() {
-		return three;
-	}
-
-	public void setThree(List<Corefs> three) {
-		this.three = three;
-	}
-
-	public List<Corefs> getFour() {
-		return four;
-	}
-
-	public void setFour(List<Corefs> four) {
-		this.four = four;
-	}
-
-	public List<Corefs> getFive() {
-		return five;
-	}
-
-	public void setFive(List<Corefs> five) {
-		this.five = five;
-	}
-
 }
