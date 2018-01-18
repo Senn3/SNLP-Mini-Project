@@ -6,7 +6,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class WikipediaExtractor {
@@ -23,22 +26,34 @@ public class WikipediaExtractor {
 
 	private static int counter = 0;
 
+	private static PauseThread p;
+
+	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
+
 	public static void main(String[] args) {
 		if (args.length != 2) {
-			System.out.println("Need 2 parameter as arguments.\n1. The input folder\n2. The output folder");
+			log("Need 2 parameter as arguments.\n1. The input folder\n2. The output folder");
 			return;
 		}
 
 		inputFolder = args[0];
 		outputFolder = args[1];
 
-		System.out.println("Start process...");
+		p = new PauseThread();
+		p.start();
+
 		if (new File(outputFolder).isDirectory())
 			new File(outputFolder).mkdir();
+		log("Start counting the files.");
 		setFileCount(new File(inputFolder));
+		log("Found " + fileCount + " files to process.");
+		log("The process can be paused with \"pause\" and continued with \"continue\"");
+		log("Start process...");
 		readInput(new File(inputFolder));
-		System.out.println("\nFinished process...");
-		System.out.println("Ignore " + counter + " files");
+		System.out.println();
+		log("Finished process...");
+		log("Ignored " + counter + " files");
+		System.exit(0);
 	}
 
 	private static void setFileCount(File folder) {
@@ -55,6 +70,13 @@ public class WikipediaExtractor {
 			if (f.isDirectory()) {
 				readInput(f);
 			} else {
+				while (!p.isRunning()) {
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
 					String line;
 					List<String> content = new ArrayList<String>();
@@ -210,6 +232,10 @@ public class WikipediaExtractor {
 		name = name.replace("?", " ");
 		name = name.replace("*", " ");
 		return name;
+	}
+
+	public static void log(String s) {
+		System.out.println(df.format(new Date()) + " - " + s);
 	}
 
 }
