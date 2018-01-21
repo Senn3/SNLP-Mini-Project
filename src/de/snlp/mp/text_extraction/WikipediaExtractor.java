@@ -27,17 +27,20 @@ public class WikipediaExtractor {
 	private static int counter = 0;
 
 	private static PauseThread p;
+	
+	private static int minTextLength = 3;
 
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
 	public static void main(String[] args) {
-		if (args.length != 2) {
-			log("Need 2 parameter as arguments.\n1. The input folder\n2. The output folder");
+		if (args.length != 3) {
+			log("Need 2 parameter as arguments.\n1. The input folder\n2. The output folder\n3. The minimum length in lines a text needs to become an extra article.");
 			return;
 		}
 
 		inputFolder = args[0];
 		outputFolder = args[1];
+		minTextLength = Integer.parseInt(args[2]);
 
 		p = new PauseThread();
 		p.start();
@@ -153,7 +156,7 @@ public class WikipediaExtractor {
 		name = convertToWindowsFileNameRules(name);
 		File f = new File(createPath(name));
 
-		if (content.size() <= 3) {
+		if (content.size() <= minTextLength) {
 			counter++;
 			return;
 		}

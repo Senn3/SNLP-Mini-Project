@@ -3,9 +3,10 @@ package de.snlp.mp.fact_checking;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,8 @@ public class FactFileHandler {
 			System.out.println("Cannot find the training file \"" + trainFile.getName() + "\"");
 			return null;
 		}
-		try (BufferedReader reader = new BufferedReader(new FileReader(trainFile))) {
+		// try (BufferedReader reader = new BufferedReader(new FileReader(trainFile))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(trainFile), "UTF8"))) {
 			String line = "";
 			List<Fact> factList = new ArrayList<Fact>();
 			while ((line = reader.readLine()) != null) {
@@ -33,7 +35,7 @@ public class FactFileHandler {
 						int factId = Integer.parseInt(f[0]);
 						String factStatement = f[1];
 						double truthvalue = Double.parseDouble(f[2]);
-						factList.add(new Fact(factId, factStatement, truthvalue));
+						factList.add(new Fact(String.valueOf(factId), factStatement, truthvalue));
 					}
 				}
 			}

@@ -92,8 +92,8 @@ public class FactChecker {
 	private static List<String> getVerbsFromTextModel(TextModel model, String factStatement) {
 		List<String> verbs = new ArrayList<String>();
 		for (Token t : model.getSentences().get(0).getTokens()) {
-			if (t.getPos().contains("VB") || t.getPos().contains("VBD") || t.getPos().contains("VBG") || t.getPos().contains("VBZ") || t.getPos().contains("VBN")
-					|| t.getPos().contains("VBP")) {
+			if (t.getPos().contains("VB") || t.getPos().contains("VBD") || t.getPos().contains("VBG") || t.getPos().contains("VBZ")
+					|| t.getPos().contains("VBN") || t.getPos().contains("VBP")) {
 				verbs.add(t.getOriginalText());
 			}
 
@@ -101,8 +101,8 @@ public class FactChecker {
 		return verbs;
 	}
 
-	private static File[] getRelatedFactFiles(int id) {
-		File relatedFactFilePath = new File(pathToFactRelatedTexts, String.valueOf(id));
+	private static File[] getRelatedFactFiles(String id) {
+		File relatedFactFilePath = new File(pathToFactRelatedTexts, id);
 
 		if (!relatedFactFilePath.exists())
 			return null;
@@ -117,14 +117,14 @@ public class FactChecker {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
 				Arrays.fill(eachWordInList, false);
-				
+
 				for (int i = 0; i < eachWordInList.length; i++) {
 					for (String s : synonyms.get(i)) {
 						if (line.contains(s))
 							eachWordInList[i] = true;
 					}
 				}
-				
+
 				if (arrayIsTrue(eachWordInList))
 					lines.add(line);
 			}

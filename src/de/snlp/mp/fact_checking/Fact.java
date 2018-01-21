@@ -1,18 +1,22 @@
 package de.snlp.mp.fact_checking;
 
+import java.util.List;
+
 public class Fact {
 
-	private int factId;
+	private String factId;
 	private String factStatement;
 	private double truthvalue;
+	
+	private List<List<String>> wordsWithSynonyms;
 
-	public Fact(int factId, String factStatement, double truthvalue) {
+	public Fact(String factId, String factStatement, double truthvalue) {
 		this.factId = factId;
 		this.factStatement = factStatement;
 		this.setTruthvalue(truthvalue);
 	}
 
-	public int getFactId() {
+	public String getFactId() {
 		return factId;
 	}
 
@@ -26,6 +30,14 @@ public class Fact {
 
 	public void setTruthvalue(double truthvalue) {
 		this.truthvalue = truthvalue;
+	}
+
+	public List<List<String>> getWordsWithSynonyms() {
+		return wordsWithSynonyms;
+	}
+
+	public void setWordsWithSynonyms(List<List<String>> wordsWithSynonyms) {
+		this.wordsWithSynonyms = wordsWithSynonyms;
 	}
 
 }
