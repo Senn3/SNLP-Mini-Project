@@ -232,7 +232,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	private static void removeEmptyFolder(File folder) {
 		for (File f : folder.listFiles()) {
-			if (f.isDirectory() && f.listFiles().length == 0) {
+			if (f != null && f.isDirectory() && f.listFiles().length == 0) {
 				f.delete();
 			} else {
 				removeEmptyFolder(f);
