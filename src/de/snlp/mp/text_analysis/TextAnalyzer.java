@@ -87,7 +87,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				Statement: for (int i = 0; i < fact.getWordsWithSynonyms().size(); i++) {
 					boolean wordIsInContent = false;
 					Synonyms: for (String s : fact.getWordsWithSynonyms().get(i)) {
-						if (textContainsWord(content, s.toLowerCase())) {
+						if (Utils.textContainsWord(content, s.toLowerCase())) {
 							wordIsInContent = true;
 							match += (s + " | ");
 							break Synonyms;
@@ -111,23 +111,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 					removedFiles++;
 			}
 		}
-	}
-
-	private static boolean textContainsWord(String text, String word) {
-		if (text.contains(" " + word) || text.contains("-" + word))
-			return true;
-		if (text.contains("\n" + word))
-			return true;
-
-		if (text.toCharArray().length >= word.toCharArray().length) {
-			String firstWordInText = "";
-			for (int i = 0; i < word.toCharArray().length; i++) {
-				firstWordInText += text.charAt(i);
-			}
-			if (firstWordInText.equals(word))
-				return true;
-		}
-		return false;
 	}
 
 	private static List<List<String>> getSynonyms(List<String> words, POS type) {

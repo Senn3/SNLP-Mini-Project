@@ -48,6 +48,23 @@ public class Utils {
 		return verbs;
 	}
 	
+	public static boolean textContainsWord(String text, String word) {
+		if (text.contains(" " + word) || text.contains("-" + word))
+			return true;
+		if (text.contains("\n" + word))
+			return true;
+
+		if (text.toCharArray().length >= word.toCharArray().length) {
+			String firstWordInText = "";
+			for (int i = 0; i < word.toCharArray().length; i++) {
+				firstWordInText += text.charAt(i);
+			}
+			if (firstWordInText.equals(word))
+				return true;
+		}
+		return false;
+	}
+	
 	public static void log(String s) {
 		System.out.println(df.format(new Date()) + " - " + s);
 	}
