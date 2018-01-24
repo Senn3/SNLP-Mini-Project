@@ -63,7 +63,8 @@ public class Utils {
 				return false;
 			}
 		}
-		log("Match: \"" + text + "\" - " + match);
+		if (printMatch)
+			log("Match: \"" + text + "\" - " + match);
 		return true;
 	}
 
