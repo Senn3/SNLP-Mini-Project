@@ -33,6 +33,11 @@ public class FactChecker {
 			
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
+			
+			// TODO add stuff like this for more words? e.g. better half
+			// add 'bear' to verbs if birth place or nascence place is used in statement
+			if (nouns.contains("birth") || nouns.contains("nascence"))
+				verbs.add("bear");
 
 			List<List<String>> synonyms = getSynonyms(nouns, POS.NOUN);
 			synonyms.addAll(getSynonyms(verbs, POS.VERB));
