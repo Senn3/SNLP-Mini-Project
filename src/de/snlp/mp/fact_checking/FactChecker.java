@@ -39,9 +39,16 @@ public class FactChecker {
 			if (relatedFactFiles != null) {
 				// lines from relatedFactFiles that match every word from the fact or their synonyms.
 				List<String> matchingLines = new ArrayList<String>();
-				for (File fi : getRelatedFactFiles(f.getFactId())) {
-					matchingLines.addAll(getMatchingLinesOfFile(fi, synonyms));
+				for (File fi : relatedFactFiles) {
+					for (String s : getMatchingLinesOfFile(fi, synonyms)) {
+						if (!matchingLines.contains(s))
+							matchingLines.add(s);
+					}
 				}
+				
+				if (isStatementPartOfMatchingLine(matchingLines, factStatement))
+					f.setTruthvalue(1.0);
+				
 				System.out.println(matchingLines);
 			} else
 				f.setTruthvalue(-1.0);
@@ -77,16 +84,7 @@ public class FactChecker {
 		try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
-				Arrays.fill(eachWordInList, false);
-
-				for (int i = 0; i < eachWordInList.length; i++) {
-					for (String s : synonyms.get(i)) {
-						if (line.contains(s))
-							eachWordInList[i] = true;
-					}
-				}
-
-				if (arrayIsTrue(eachWordInList))
+				if (Utils.textContainsWordList(line, synonyms, false))
 					lines.add(line);
 			}
 		} catch (Exception e) {
@@ -94,11 +92,14 @@ public class FactChecker {
 		}
 		return lines;
 	}
-
-	private static boolean arrayIsTrue(boolean[] a) {
-		for (boolean value : a)
-			if (!value)
-				return false;
-		return true;
+	
+	private static boolean isStatementPartOfMatchingLine(List<String> matchingLines, String factStatement) {
+		for (String s : matchingLines) {
+			if (s.contains(factStatement)) {
+				Utils.log("Statement is contained in matching line" + factStatement);
+				return true;
+			}
+		}
+		return false;
 	}
 }
