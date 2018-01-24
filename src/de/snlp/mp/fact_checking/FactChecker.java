@@ -6,10 +6,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import de.snlp.mp.text_analysis.StanfordLib;
-import de.snlp.mp.text_model.Corefs;
-import de.snlp.mp.text_model.TextModel;
-import de.snlp.mp.text_model.Token;
+import de.snlp.mp.text_analysis.Utils;
 import edu.mit.jwi.item.POS;
 
 public class FactChecker {
@@ -26,8 +25,8 @@ public class FactChecker {
 
 		for (Fact f : facts) {
 			String factStatement = f.getFactStatement();
-			List<String> nouns = getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
-			List<String> verbs = getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
+			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
+			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			System.out.println(nouns);
 			System.out.println(verbs);
 
@@ -65,40 +64,6 @@ public class FactChecker {
 		}
 
 		return wordsWithSynonyms;
-	}
-
-	private static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
-		List<String> nouns = new ArrayList<String>();
-		for (Corefs c : model.getCorefs()) {
-			if (c.getType().equals("PROPER")) {
-				if (c.getText().contains(" , ")) {
-					nouns.add(c.getText().split(" , ")[0]);
-					nouns.add(c.getText().split(" , ")[1]);
-				} else {
-					nouns.add(c.getText().replaceAll(" 's", ""));
-				}
-			}
-		}
-
-		for (Token t : model.getSentences().get(0).getTokens()) {
-			if (t.getPos().contains("NN") && !t.getPos().contains("P")) {
-				nouns.add(t.getOriginalText());
-			}
-
-		}
-		return nouns;
-	}
-
-	private static List<String> getVerbsFromTextModel(TextModel model, String factStatement) {
-		List<String> verbs = new ArrayList<String>();
-		for (Token t : model.getSentences().get(0).getTokens()) {
-			if (t.getPos().contains("VB") || t.getPos().contains("VBD") || t.getPos().contains("VBG") || t.getPos().contains("VBZ")
-					|| t.getPos().contains("VBN") || t.getPos().contains("VBP")) {
-				verbs.add(t.getOriginalText());
-			}
-
-		}
-		return verbs;
 	}
 
 	private static File[] getRelatedFactFiles(String id) {

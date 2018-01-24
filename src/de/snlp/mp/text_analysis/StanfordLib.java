@@ -28,13 +28,13 @@ public class StanfordLib {
 	 */
 	public StanfordLib() {
 		try {
-			TextAnalyzer.log("Initialze StanfordCoreNLP library.");
+			Utils.log("Initialze StanfordCoreNLP library.");
 			Properties props = new Properties();
 			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref, relation");
 			pipeline = new StanfordCoreNLP(props);
-			TextAnalyzer.log("Finish initialization of the StanfordCoreNLP library.");
+			Utils.log("Finish initialization of the StanfordCoreNLP library.");
 		} catch (RuntimeIOException e) {
-			TextAnalyzer.log("Can't find the english language model file.");
+			Utils.log("Can't find the english language model file.");
 			donwloadModel();
 			System.exit(255);
 		}
@@ -47,13 +47,13 @@ public class StanfordLib {
 		File file = new File("stanford-english-corenlp-models.jar");
 		try {
 			if (!file.exists()) {
-				TextAnalyzer.log("Download the model file for the english language.");
+				Utils.log("Download the model file for the english language.");
 				URL url = new URL("https://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar");
 				FileUtils.copyURLToFile(url, file);
 			}
-			TextAnalyzer.log("Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
+			Utils.log("Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
 		} catch (IOException e) {
-			TextAnalyzer.log("Download failed. Exit program.");
+			Utils.log("Download failed. Exit program.");
 			if (file.exists())
 				file.delete();
 			System.exit(255);
@@ -69,7 +69,7 @@ public class StanfordLib {
 		try {
 
 			if (pipeline == null) {
-				TextAnalyzer.log("The StandfordLibrary hasn't been initialized yet. Use the method \"initStandFordLib\" first.");
+				Utils.log("The StandfordLibrary hasn't been initialized yet. Use the method \"initStandFordLib\" first.");
 				return null;
 			}
 			ObjectMapper mapper = new ObjectMapper();
@@ -81,7 +81,7 @@ public class StanfordLib {
 			return mapper.readValue(json, TextModel.class);
 		} catch (IOException e) {
 			e.printStackTrace();
-			TextAnalyzer.log("Error creating the text model for the content: " + content);
+			Utils.log("Error creating the text model for the content: " + content);
 			return null;
 		}
 	}
@@ -105,7 +105,7 @@ public class StanfordLib {
 			return writer.toString();
 		} catch (IOException e) {
 			e.printStackTrace();
-			TextAnalyzer.log("Error creating the json-file for the content: " + content);
+			Utils.log("Error creating the json-file for the content: " + content);
 			return null;
 		}
 

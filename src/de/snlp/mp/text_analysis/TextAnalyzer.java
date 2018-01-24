@@ -5,10 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -16,9 +13,7 @@ import org.apache.commons.io.FileUtils;
 import de.snlp.mp.fact_checking.Fact;
 import de.snlp.mp.fact_checking.FactFileHandler;
 import de.snlp.mp.fact_checking.SynonymDictionary;
-import de.snlp.mp.text_model.Corefs;
 import de.snlp.mp.text_model.TextModel;
-import de.snlp.mp.text_model.Token;
 import edu.mit.jwi.item.POS;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
@@ -26,10 +21,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	private static final boolean DEBUG = false;
 
-	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
-
 	public static File corpus = new File("C:\\Wikipedia Corpus Splitted");
-	// public static File corpus = new File("Test");
 
 	private static File factFolder = new File("FactRelatedTexts");
 
@@ -41,12 +33,12 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	public static void main(String[] args) {
 		if (args.length == 0) {
-			log("No argument found. Use \"" + corpus.getName() + "\" as corpus folder.");
+			Utils.log("No argument found. Use \"" + corpus.getName() + "\" as corpus folder.");
 		} else {
 			corpus = new File(args[1]);
 		}
 		if (!corpus.exists()) {
-			log("Cannot find the folder: " + corpus.getAbsolutePath());
+			Utils.log("Cannot find the folder: " + corpus.getAbsolutePath());
 			return;
 		}
 
@@ -57,27 +49,26 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		List<Fact> facts = FactFileHandler.readFactsFromFile();
 
 		setFileCount(corpus);
-		log("Found " + fileCounter + " files in the corpus to process.");
+		Utils.log("Found " + fileCounter + " files in the corpus to process.");
 
-		log("This program should be stopped with: \"" + ExitThread.QUIT_COMMAND + "\".");
-		log("DONOT use cmd + c, otherwise no calculations will be saved.");
+		Utils.log("This program should be stopped with: \"" + ExitThread.QUIT_COMMAND + "\".");
+		Utils.log("DONOT use cmd + c, otherwise no calculations will be saved.");
 		ExitThread exitThread = new ExitThread();
 		exitThread.start();
 
-		log("Scan all facts and prepare the fact statements.");
+		Utils.log("Scan all facts and prepare the fact statements.");
 		for (Fact f : facts) {
 			createFactDirs(f.getFactId());
 			String statement = f.getFactStatement().replaceAll("\\?", "");
 			TextModel model = stanfordLib.getTextModel(statement);
-			List<String> nouns = getNounsFromTextModel(model, f.getFactStatement());
+			List<String> nouns = Utils.getNounsFromTextModel(model, f.getFactStatement());
 			f.setWordsWithSynonyms(getSynonyms(nouns, POS.NOUN));
 		}
 
-		log("Start looking for fact statements in the corpus.");
+		Utils.log("Start looking for fact statements in the corpus.");
 		goThroughCorpus(corpus, facts, exitThread);
 
-		// removeEmptyFolder(corpus);
-		log("Finished program. Removed " + removedFiles + " articles from the corpus.");
+		Utils.log("Finished program. Removed " + removedFiles + " articles from the corpus.");
 		System.exit(0);
 	}
 
@@ -115,7 +106,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			}
 			if (!DEBUG) {
 				if (!f.delete())
-					log("The file \"" + f.getAbsolutePath() + "\" could not be deleted!");
+					Utils.log("The file \"" + f.getAbsolutePath() + "\" could not be deleted!");
 				else
 					removedFiles++;
 			}
@@ -163,7 +154,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			output += " | ";
 		}
 		output = output.substring(0, output.toCharArray().length - 3);
-		log("Found following nouns: " + output);
+		Utils.log("Found following nouns: " + output);
 	}
 
 	private static void createFactDirs(String id) {
@@ -173,29 +164,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			new File(factFolder + "/" + id).mkdirs();
 	}
 
-	private static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
-		List<String> nouns = new ArrayList<String>();
-		for (Corefs c : model.getCorefs()) {
-			if (c.getType().equals("PROPER")) {
-				if (c.getText().contains(" , ")) {
-					nouns.add(c.getText().split(" , ")[0]);
-					nouns.add(c.getText().split(" , ")[1]);
-				} else {
-					nouns.add(c.getText().replaceAll(" 's", ""));
-				}
-			}
-
-		}
-
-		for (Token t : model.getSentences().get(0).getTokens()) {
-			if (t.getPos().contains("NN") && !t.getPos().contains("P")) {
-				nouns.add(t.getOriginalText());
-			}
-
-		}
-
-		return nouns;
-	}
 
 	private static String readFileContent(File f) {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
@@ -230,18 +198,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		}
 	}
 
-	private static void removeEmptyFolder(File folder) {
-		for (File f : folder.listFiles()) {
-			if (f != null && f.isDirectory() && f.listFiles().length == 0) {
-				f.delete();
-			} else {
-				removeEmptyFolder(f);
-			}
-		}
-	}
-
-	public static void log(String s) {
-		System.out.println(df.format(new Date()) + " - " + s);
-	}
+	
 
 }
