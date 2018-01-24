@@ -59,10 +59,11 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		Utils.log("Scan all facts and prepare the fact statements.");
 		for (Fact f : facts) {
 			createFactDirs(f.getFactId());
-			String statement = f.getFactStatement().replaceAll("\\?", "");
+			String statement = f.getFactStatement();
+			statement = Utils.normalizeText(statement);
 			TextModel model = stanfordLib.getTextModel(statement);
 			List<String> nouns = Utils.getNounsFromTextModel(model, f.getFactStatement());
-			f.setWordsWithSynonyms(getSynonyms(nouns, POS.NOUN));
+			f.setWordsWithSynonyms(getSynonyms(statement, nouns, POS.NOUN));
 		}
 
 		Utils.log("Start looking for fact statements in the corpus.");
@@ -80,7 +81,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				}
 			}
 		} else {
-			String content = readFileContent(f).toLowerCase();
+			String content = Utils.normalizeText(readFileContent(f));
 			for (Fact fact : facts) {
 				if (Utils.textContainsWordList(content, fact.getWordsWithSynonyms(), DEBUG)) {
 					addFileToDir(fact.getFactId(), f);
@@ -95,7 +96,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		}
 	}
 
-	private static List<List<String>> getSynonyms(List<String> words, POS type) {
+	private static List<List<String>> getSynonyms(String text, List<String> words, POS type) {
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		for (int i = 0; i < words.size(); i++) {
 			wordsWithSynonyms.add(new ArrayList<String>());
@@ -106,11 +107,11 @@ public class TextAnalyzer extends StanfordCoreNLP {
 				wordsWithSynonyms.get(i).add(words.get(i));
 		}
 		if (DEBUG)
-			printSynonymList(wordsWithSynonyms);
+			printSynonymList(text, wordsWithSynonyms);
 		return wordsWithSynonyms;
 	}
 
-	private static void printSynonymList(List<List<String>> wordsWithSynonyms) {
+	private static void printSynonymList(String text, List<List<String>> wordsWithSynonyms) {
 		String output = "";
 		for (List<String> list : wordsWithSynonyms) {
 			for (String word : list) {
@@ -119,7 +120,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			output += " | ";
 		}
 		output = output.substring(0, output.toCharArray().length - 3);
-		Utils.log("Found following nouns: " + output);
+		Utils.log("Statement: " + text + "     Nouns: " + output);
 	}
 
 	private static void createFactDirs(String id) {

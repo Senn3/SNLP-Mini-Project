@@ -88,4 +88,57 @@ public class Utils {
 	public static void log(String s) {
 		System.out.println(df.format(new Date()) + " - " + s);
 	}
+
+	public static String normalizeText(String text) {
+		text = text.toLowerCase();
+		char[] array = text.toCharArray();
+		for (int i = 0; i < array.length; i++) {
+			int ascii = (int) array[i];
+			if (ascii == 257) // ā
+				array[i] = 'a';
+			else if (ascii == 275) // ē
+				array[i] = 'e';
+			else if (ascii == 299) // ī
+				array[i] = 'i';
+			else if (ascii == 333) // ō
+				array[i] = 'o';
+			else if (ascii == 363) // ū
+				array[i] = 'u';
+			else if (ascii == 227) // ò
+				array[i] = 'o';
+			else if (ascii == 233) // ù
+				array[i] = 'u';
+			else if (ascii == 237) // ý
+				array[i] = 'y';
+			else if (ascii == 225) // á
+				array[i] = 'a';
+			else if (ascii == 263) // ć
+				array[i] = 'c';
+			else if (ascii == 231) // ç
+				array[i] = 'c';
+			else if (ascii == 322) // ł
+				array[i] = 'l';
+			else if (ascii == 326) // ņ
+				array[i] = 'n';
+			else if (ascii == 353) // š
+				array[i] = 's';
+			else if (ascii == 269) // Č
+				array[i] = 'c';
+			else if (ascii == 246) // í
+				array[i] = 'i';
+			else if (ascii == 232) // è
+				array[i] = 'e';
+			else if (ascii == 243) // ó
+				array[i] = 'o';
+			else if (ascii == 241) // ñ
+				array[i] = 'n';
+			else if (ascii == 250) // ú
+				array[i] = 'u';
+			else if (ascii == 239) // ï
+				array[i] = 'i';
+			else if (ascii == 351) // Ş
+				array[i] = 's';
+		}
+		return new String(array).replace("ä", "ae").replace("ü", "ue").replace("ß", "ss");
+	}
 }

@@ -3,9 +3,11 @@ package de.snlp.mp.text_extraction;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,7 +82,7 @@ public class WikipediaExtractor {
 						e.printStackTrace();
 					}
 				}
-				try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
 					String line;
 					List<String> content = new ArrayList<String>();
 					String name = "";
