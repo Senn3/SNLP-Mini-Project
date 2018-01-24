@@ -2,17 +2,18 @@ package de.snlp.mp.fact_checking;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 import de.snlp.mp.text_analysis.StanfordLib;
 import de.snlp.mp.text_analysis.Utils;
 import edu.mit.jwi.item.POS;
 
 public class FactChecker {
 
+	private static final boolean DEBUG = true;
+	
 	private static final File pathToFactRelatedTexts = new File("FactRelatedTexts");
 
 	private static final StanfordLib stanfordLib = new StanfordLib();
@@ -25,18 +26,23 @@ public class FactChecker {
 
 		for (Fact f : facts) {
 			String factStatement = f.getFactStatement();
+			String factId = f.getFactId();
+			if (DEBUG) {
+				Utils.log("Processing fact: " + factStatement + ", " + factId);
+			}
+			
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
-			System.out.println(nouns);
-			System.out.println(verbs);
+//			System.out.println(nouns);
+//			System.out.println(verbs);
 
 			List<List<String>> synonyms = getSynonyms(nouns, POS.NOUN);
 			synonyms.addAll(getSynonyms(verbs, POS.VERB));
 
 			// files that contain the same words as the fact.
-			File[] relatedFactFiles = getRelatedFactFiles(f.getFactId());
+			File[] relatedFactFiles = getRelatedFactFiles(factId);
 
-			if (relatedFactFiles != null) {
+			if (relatedFactFiles.length > 0) {
 				// lines from relatedFactFiles that match every word from the fact or their synonyms.
 				List<String> matchingLines = new ArrayList<String>();
 				for (File fi : relatedFactFiles) {
@@ -46,12 +52,18 @@ public class FactChecker {
 					}
 				}
 				
-				if (isStatementPartOfMatchingLine(matchingLines, factStatement))
+				if (isStatementPartOfMatchingLine(matchingLines, factStatement)) {
 					f.setTruthvalue(1.0);
-				
-				System.out.println(matchingLines);
-			} else
+					if (DEBUG) {
+						Utils.log("Statement is contained in matching line" + factStatement + ", " + factId);
+					}
+				}
+			} else {
+				if (DEBUG) {
+					Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
+				}
 				f.setTruthvalue(-1.0);
+			}
 		}
 
 		FactFileHandler.writeFactsToFile(facts);
@@ -79,12 +91,11 @@ public class FactChecker {
 	}
 
 	private static List<String> getMatchingLinesOfFile(File f, List<List<String>> synonyms) {
-		boolean[] eachWordInList = new boolean[synonyms.size()];
 		List<String> lines = new ArrayList<String>();
-		try (BufferedReader reader = new BufferedReader(new FileReader(f))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
-				if (Utils.textContainsWordList(line, synonyms, false))
+				if (Utils.textContainsWordList(line.toLowerCase(), synonyms, false))
 					lines.add(line);
 			}
 		} catch (Exception e) {
@@ -96,7 +107,6 @@ public class FactChecker {
 	private static boolean isStatementPartOfMatchingLine(List<String> matchingLines, String factStatement) {
 		for (String s : matchingLines) {
 			if (s.contains(factStatement)) {
-				Utils.log("Statement is contained in matching line" + factStatement);
 				return true;
 			}
 		}
