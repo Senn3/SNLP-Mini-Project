@@ -11,7 +11,7 @@ import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.text_model.Token;
 
 public class Utils {
-	
+
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
 	public static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
@@ -47,8 +47,27 @@ public class Utils {
 		}
 		return verbs;
 	}
-	
-	public static boolean textContainsWord(String text, String word) {
+
+	public static boolean textContainsWordList(String text, List<List<String>> wordList, boolean printMatch) {
+		String match = "";
+		for (int i = 0; i < wordList.size(); i++) {
+			boolean wordIsInContent = false;
+			Synonyms: for (String s : wordList.get(i)) {
+				if (Utils.textContainsWord(text, s.toLowerCase())) {
+					wordIsInContent = true;
+					match += (s + " | ");
+					break Synonyms;
+				}
+			}
+			if (!wordIsInContent) {
+				return false;
+			}
+		}
+		log("Match: \"" + text + "\" - " + match);
+		return true;
+	}
+
+	private static boolean textContainsWord(String text, String word) {
 		if (text.contains(" " + word) || text.contains("-" + word))
 			return true;
 		if (text.contains("\n" + word))
@@ -64,7 +83,7 @@ public class Utils {
 		}
 		return false;
 	}
-	
+
 	public static void log(String s) {
 		System.out.println(df.format(new Date()) + " - " + s);
 	}

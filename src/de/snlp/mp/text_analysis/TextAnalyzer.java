@@ -82,25 +82,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		} else {
 			String content = readFileContent(f).toLowerCase();
 			for (Fact fact : facts) {
-				boolean wordIsInStatement = true;
-				String match = "";
-				Statement: for (int i = 0; i < fact.getWordsWithSynonyms().size(); i++) {
-					boolean wordIsInContent = false;
-					Synonyms: for (String s : fact.getWordsWithSynonyms().get(i)) {
-						if (Utils.textContainsWord(content, s.toLowerCase())) {
-							wordIsInContent = true;
-							match += (s + " | ");
-							break Synonyms;
-						}
-					}
-					if (!wordIsInContent) {
-						wordIsInStatement = false;
-						break Statement;
-					}
-				}
-
-				if (wordIsInStatement) {
-					// log("Match: \"" + f.getName() + "\" - \"" + fact.getFactStatement() + "\" - " + match);
+				if (Utils.textContainsWordList(content, fact.getWordsWithSynonyms(), DEBUG)) {
 					addFileToDir(fact.getFactId(), f);
 				}
 			}
@@ -147,7 +129,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			new File(factFolder + "/" + id).mkdirs();
 	}
 
-
 	private static String readFileContent(File f) {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
 			String line = "";
@@ -180,7 +161,5 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			}
 		}
 	}
-
-	
 
 }

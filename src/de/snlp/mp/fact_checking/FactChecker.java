@@ -68,11 +68,7 @@ public class FactChecker {
 
 	private static File[] getRelatedFactFiles(String id) {
 		File relatedFactFilePath = new File(pathToFactRelatedTexts, id);
-
-		if (!relatedFactFilePath.exists())
-			return null;
-
-		return relatedFactFilePath.listFiles();
+		return relatedFactFilePath.exists() ? relatedFactFilePath.listFiles() : null;
 	}
 
 	private static List<String> getMatchingLinesOfFile(File f, List<List<String>> synonyms) {
