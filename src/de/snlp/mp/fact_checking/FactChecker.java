@@ -33,8 +33,6 @@ public class FactChecker {
 			
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
-//			System.out.println(nouns);
-//			System.out.println(verbs);
 
 			List<List<String>> synonyms = getSynonyms(nouns, POS.NOUN);
 			synonyms.addAll(getSynonyms(verbs, POS.VERB));

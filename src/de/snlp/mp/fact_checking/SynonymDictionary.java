@@ -18,6 +18,8 @@ public class SynonymDictionary {
 	
 	private final String path = "SynonymDictionary/dict";
 	
+	private SimpleNLGDictionary simpleNLGDictionary = new SimpleNLGDictionary();
+	
 	private IDictionary dict;
 	
 	public SynonymDictionary() {
@@ -57,10 +59,26 @@ public class SynonymDictionary {
 		dict.close();
 		
 		List<String> synonyms = new ArrayList<String>();
-		for(IWord w : synset.getWords())
+		for(IWord w : synset.getWords()) {
 			synonyms.add(w.getLemma().toLowerCase());
+			
+			if (type == POS.VERB)
+				synonyms = combineLists(simpleNLGDictionary.conjugateVerb(w.getLemma().toLowerCase()), synonyms);
+		}
 		
-//		synonyms.add(word);
 		return synonyms;
+	}
+	
+	private static List<String> combineLists(List<String> l1, List<String> l2) {
+		List<String> list = new ArrayList<String>();
+		
+		list.addAll(l1);
+		
+		for (String s : l2) {
+			if (!list.contains(s))
+				list.add(s);
+		}
+		
+		return list;
 	}
 }

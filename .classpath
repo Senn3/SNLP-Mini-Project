@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="jackson-databind-2.9.3.jar"/>
 	<classpathentry kind="lib" path="stanford-english-corenlp-models.jar"/>
 	<classpathentry kind="lib" path="edu.mit.jwi_2.4.0_jdk.jar"/>
+	<classpathentry kind="lib" path="simplenlg-v4.4.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
