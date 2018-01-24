@@ -25,7 +25,7 @@ public class FactChecker {
 		List<Fact> facts = FactFileHandler.readFactsFromFile();
 
 		for (Fact f : facts) {
-			String factStatement = f.getFactStatement();
+			String factStatement = Utils.normalizeText(f.getFactStatement());
 			String factId = f.getFactId();
 			if (DEBUG) {
 				Utils.log("Processing fact: " + factStatement + ", " + factId);
@@ -93,6 +93,7 @@ public class FactChecker {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
+				Utils.normalizeText(line);
 				if (Utils.textContainsWordList(line.toLowerCase(), synonyms, false))
 					lines.add(line);
 			}
