@@ -10,10 +10,29 @@ public class RemoveFolder {
 			Utils.log("1. The folder which should be removed");
 			System.exit(255);
 		}
-		if (new File(args[0]).delete()) {
-			Utils.log("The folder was removed successfully.");
+
+		File dir = new File("D:\\Test");
+		if (dir.isDirectory())
+			removeDirChilds(dir);
+		removeFile(dir);
+	}
+
+	private static void removeFile(File f) {
+		if (f.delete()) {
+			Utils.log("The folder \"" + f.getAbsolutePath() + "\" was removed successfully.");
 		} else {
-			Utils.log("The folder can't be removed.");
+			Utils.log("The folder \"" + f.getAbsolutePath() + "\" can't be removed.");
+		}
+	}
+
+	private static void removeDirChilds(File folder) {
+		for (File f : folder.listFiles()) {
+			if (f.isDirectory()) {
+				removeDirChilds(f);
+				f.delete();
+			} else {
+				f.delete();
+			}
 		}
 	}
 
