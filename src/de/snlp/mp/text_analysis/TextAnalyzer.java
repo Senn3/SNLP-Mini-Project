@@ -27,8 +27,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	private static int progress = 0;
 	private static long currentfileCounter = 0;
 
-	private static int removedFiles = 0;
-
 	private static int minTextLength = 5;
 
 	public static void main(String[] args) {
@@ -61,7 +59,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		setFileCount(corpus);
 		Utils.log("Found " + fileCounter + " files in the corpus to process.");
 
-		Utils.log("The process can be paused with \"pause\" and continued with \"continue\"");
+		Utils.log("The process can be paused with \"p\" and continued with \"c\"");
 		PauseThread pauseThread = new PauseThread();
 		pauseThread.start();
 
@@ -78,7 +76,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		Utils.log("Start looking for fact statements in the corpus.");
 		goThroughCorpus(corpus, facts, pauseThread);
 
-		Utils.log("Finished program. Removed " + removedFiles + " articles from the corpus.");
+		Utils.log("Finished program.");
 		System.exit(0);
 	}
 

@@ -6,9 +6,9 @@ public class PauseThread extends Thread {
 
 	private boolean isRunning = true;
 
-	public static final String PAUSE_COMMAND = "pause";
+	public static final String PAUSE_COMMAND = "p";
 
-	public static final String CONTINUE_COMMAND = "continue";
+	public static final String CONTINUE_COMMAND = "c";
 
 	@Override
 	public void run() {
@@ -18,11 +18,11 @@ public class PauseThread extends Thread {
 			line = s.nextLine();
 			if (line.equals(PAUSE_COMMAND)) {
 				isRunning = false;
-				System.out.println("\nPause the current thread.\n");
+				System.out.print("-P-");
 			}
 			if (line.equals(CONTINUE_COMMAND)) {
 				isRunning = true;
-				System.out.println("\nContinue the current thread.\n");
+				System.out.print("-C-");
 			}
 		}
 		s.close();
