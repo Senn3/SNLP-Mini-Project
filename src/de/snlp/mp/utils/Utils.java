@@ -9,10 +9,13 @@ import java.util.List;
 import de.snlp.mp.text_model.Corefs;
 import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.text_model.Token;
+import edu.mit.jwi.item.POS;
 
 public class Utils {
 
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
+
+	private static SynonymDictionary synonymDictionary = new SynonymDictionary();
 
 	public static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
 		List<String> nouns = new ArrayList<String>();
@@ -53,7 +56,7 @@ public class Utils {
 		for (int i = 0; i < wordList.size(); i++) {
 			boolean wordIsInContent = false;
 			Synonyms: for (String s : wordList.get(i)) {
-				if (Utils.textContainsWord(text, s.toLowerCase())) {
+				if (Utils.textContainsWord(text, s)) {
 					wordIsInContent = true;
 					match += (s + " | ");
 					break Synonyms;
@@ -85,60 +88,104 @@ public class Utils {
 		return false;
 	}
 
+	public static List<List<String>> getSynonyms(List<String> words, POS type) {
+		if (synonymDictionary == null)
+			synonymDictionary = new SynonymDictionary();
+		;
+		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
+		for (int i = 0; i < words.size(); i++) {
+			wordsWithSynonyms.add(new ArrayList<String>());
+
+			for (String st : synonymDictionary.getSynonyms(words.get(i), type))
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(st).toLowerCase());
+			if (wordsWithSynonyms.get(i).isEmpty())
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(words.get(i)).toLowerCase());
+		}
+		return wordsWithSynonyms;
+	}
+
+	public static void printSynonymList(String text, List<List<String>> wordsWithSynonyms) {
+		String output = "";
+		for (List<String> list : wordsWithSynonyms) {
+			for (String word : list) {
+				output += (word + " - ");
+			}
+			output += " | ";
+		}
+		output = output.substring(0, output.toCharArray().length - 3);
+		Utils.log("Statement: " + text + "     Nouns: " + output);
+	}
+
 	public static void log(String s) {
 		System.out.println(df.format(new Date()) + " - " + s);
 	}
 
-	public static String normalizeText(String text) {
-		text = text.toLowerCase();
+	public static String replaceSpecialChars(String text) {
+		text = text.replace("ä", "ae").replace("Ä", "Ae").replace("ü", "ue").replace("Ü", "Ue").replace("ö", "oe").replace("ß", "ss");
 		char[] array = text.toCharArray();
 		for (int i = 0; i < array.length; i++) {
 			int ascii = (int) array[i];
-			if (ascii == 257) // ā
+			if (ascii == 193) // Á
+				array[i] = 'A';
+			else if (ascii == 201) // É
+				array[i] = 'E';
+			else if (ascii == 225) // á
 				array[i] = 'a';
-			else if (ascii == 275) // ē
-				array[i] = 'e';
-			else if (ascii == 299) // ī
-				array[i] = 'i';
-			else if (ascii == 333) // ō
-				array[i] = 'o';
-			else if (ascii == 363) // ū
-				array[i] = 'u';
 			else if (ascii == 227) // ò
 				array[i] = 'o';
+			else if (ascii == 231) // ç
+				array[i] = 'c';
+			else if (ascii == 232) // è
+				array[i] = 'e';
 			else if (ascii == 233) // ù
 				array[i] = 'u';
-			else if (ascii == 237) // ý
+			else if (ascii == 237) // í
+				array[i] = 'i';
+			else if (ascii == 239) // ï
+				array[i] = 'i';
+			else if (ascii == 241) // ñ
+				array[i] = 'n';
+			else if (ascii == 243) // ó
+				array[i] = 'o';
+			else if (ascii == 248) // ø
+				array[i] = 'o';
+			else if (ascii == 250) // ú
+				array[i] = 'u';
+			else if (ascii == 253) // ý
 				array[i] = 'y';
-			else if (ascii == 225) // á
+			else if (ascii == 257) // ā
 				array[i] = 'a';
 			else if (ascii == 263) // ć
 				array[i] = 'c';
-			else if (ascii == 231) // ç
+			else if (ascii == 268) // Č
+				array[i] = 'C';
+			else if (ascii == 269) // Č
 				array[i] = 'c';
+			else if (ascii == 275) // ē
+				array[i] = 'e';
+			else if (ascii == 283) // ě
+				array[i] = 'e';
+			else if (ascii == 299) // ī
+				array[i] = 'i';
 			else if (ascii == 322) // ł
 				array[i] = 'l';
 			else if (ascii == 326) // ņ
 				array[i] = 'n';
-			else if (ascii == 353) // š
-				array[i] = 's';
-			else if (ascii == 269) // Č
-				array[i] = 'c';
-			else if (ascii == 246) // í
-				array[i] = 'i';
-			else if (ascii == 232) // è
-				array[i] = 'e';
-			else if (ascii == 243) // ó
+			else if (ascii == 332) // ō
+				array[i] = 'O';
+			else if (ascii == 333) // ō
 				array[i] = 'o';
-			else if (ascii == 241) // ñ
-				array[i] = 'n';
-			else if (ascii == 250) // ú
-				array[i] = 'u';
-			else if (ascii == 239) // ï
-				array[i] = 'i';
+			else if (ascii == 350) // Ş
+				array[i] = 'S';
 			else if (ascii == 351) // Ş
 				array[i] = 's';
+			else if (ascii == 352) // š
+				array[i] = 'S';
+			else if (ascii == 353) // š
+				array[i] = 's';
+			else if (ascii == 363) // ū
+				array[i] = 'u';
 		}
-		return new String(array).replace("ä", "ae").replace("ü", "ue").replace("ß", "ss");
+		return new String(array);
 	}
 }

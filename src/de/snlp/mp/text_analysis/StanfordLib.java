@@ -77,7 +77,7 @@ public class StanfordLib {
 			String json = getJsonFile(content);
 			json = json.replaceAll("\"corefs\": \\{", "\"corefs\": \\[{").substring(0, json.toCharArray().length - 2) + " }]}";
 			CorefsHeader.clearCorefs();
-			// System.out.println(json);
+//			System.out.println(json);
 
 			return mapper.readValue(json, TextModel.class);
 		} catch (IOException e) {

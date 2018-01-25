@@ -1,4 +1,4 @@
-package de.snlp.mp.text_extraction;
+package de.snlp.mp.text_analysis;
 
 import java.util.Scanner;
 

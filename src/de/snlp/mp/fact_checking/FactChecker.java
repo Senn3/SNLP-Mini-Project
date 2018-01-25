@@ -6,10 +6,10 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
 import de.snlp.mp.text_analysis.StanfordLib;
 import de.snlp.mp.text_model.Fact;
 import de.snlp.mp.utils.FactFileHandler;
-import de.snlp.mp.utils.SynonymDictionary;
 import de.snlp.mp.utils.Utils;
 import edu.mit.jwi.item.POS;
 
@@ -21,8 +21,6 @@ public class FactChecker {
 
 	private static final StanfordLib stanfordLib = new StanfordLib();
 
-	private static SynonymDictionary synonymDictionary = new SynonymDictionary();
-
 	private static int rightPrognosis = 0;
 	private static int wrongPrognosis = 0;
 
@@ -31,10 +29,10 @@ public class FactChecker {
 		List<Fact> facts = FactFileHandler.readFactsFromFile(true);
 
 		for (Fact f : facts) {
-			String factStatement = Utils.normalizeText(f.getFactStatement());
+			String factStatement = Utils.replaceSpecialChars(f.getFactStatement());
 			String factId = f.getFactId();
 			if (DEBUG) {
-				Utils.log("Processing fact: " + factStatement + ", " + factId);
+				// Utils.log("Processing fact: " + factStatement + ", " + factId);
 			}
 
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
@@ -45,8 +43,8 @@ public class FactChecker {
 			if (nouns.contains("birth") || nouns.contains("nascence"))
 				verbs.add("bear");
 
-			List<List<String>> synonyms = getSynonyms(nouns, POS.NOUN);
-			synonyms.addAll(getSynonyms(verbs, POS.VERB));
+			List<List<String>> synonyms = Utils.getSynonyms(nouns, POS.NOUN);
+			synonyms.addAll(Utils.getSynonyms(verbs, POS.VERB));
 
 			// files that contain the same words as the fact.
 			File[] relatedFactFiles = getRelatedFactFiles(factId);
@@ -55,9 +53,12 @@ public class FactChecker {
 				// lines from relatedFactFiles that match every word from the fact or their synonyms.
 				List<String> matchingLines = new ArrayList<String>();
 				for (File fi : relatedFactFiles) {
-					for (String s : getMatchingLinesOfFile(fi, synonyms)) {
-						if (!matchingLines.contains(s))
-							matchingLines.add(s);
+					List<String> matchingLinesForFile = getMatchingLinesOfFile(fi, synonyms);
+					if (matchingLinesForFile.size() != 0) {
+						if (DEBUG) {
+							Utils.log("Found " + matchingLinesForFile.size() + " matching line(s) in text \"" + fi.getName());
+						}
+						matchingLines.addAll(matchingLinesForFile);
 					}
 				}
 
@@ -71,11 +72,23 @@ public class FactChecker {
 							wrongPrognosis++;
 					}
 				} else {
-					// TODO Process matching lines
+					if (DEBUG) {
+						if (matchingLines.size() == 0) {
+							if (f.getTruthvalue() == 0)
+								rightPrognosis++;
+							else
+								wrongPrognosis++;
+						} else {
+							if (f.getTruthvalue() == 1)
+								rightPrognosis++;
+							else
+								wrongPrognosis++;
+						}
+					}
 				}
 			} else {
 				if (DEBUG) {
-					Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
+					// Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
 					if (f.getTruthvalue() == 0)
 						rightPrognosis++;
 					else
@@ -91,22 +104,6 @@ public class FactChecker {
 		FactFileHandler.writeFactsToFile(facts);
 	}
 
-	private static List<List<String>> getSynonyms(List<String> words, POS type) {
-		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
-
-		for (int i = 0; i < words.size(); i++) {
-			wordsWithSynonyms.add(new ArrayList<String>());
-
-			for (String st : synonymDictionary.getSynonyms(words.get(i), type))
-				wordsWithSynonyms.get(i).add(st.replaceAll("[^a-zA-Z]", " "));
-
-			if (wordsWithSynonyms.get(i).isEmpty())
-				wordsWithSynonyms.get(i).add(words.get(i));
-		}
-
-		return wordsWithSynonyms;
-	}
-
 	private static File[] getRelatedFactFiles(String id) {
 		File relatedFactFilePath = new File(pathToFactRelatedTexts, id);
 		return relatedFactFilePath.exists() ? relatedFactFilePath.listFiles() : null;
@@ -117,8 +114,8 @@ public class FactChecker {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
 			String line = "";
 			while ((line = reader.readLine()) != null) {
-				Utils.normalizeText(line);
-				if (Utils.textContainsWordList(line.toLowerCase(), synonyms, false))
+				line = Utils.replaceSpecialChars(line).toLowerCase();
+				if (Utils.textContainsWordList(line, synonyms, false))
 					lines.add(line);
 			}
 		} catch (Exception e) {
