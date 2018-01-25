@@ -10,10 +10,11 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
-import de.snlp.mp.fact_checking.Fact;
-import de.snlp.mp.fact_checking.FactFileHandler;
-import de.snlp.mp.fact_checking.SynonymDictionary;
+import de.snlp.mp.text_model.Fact;
 import de.snlp.mp.text_model.TextModel;
+import de.snlp.mp.utils.FactFileHandler;
+import de.snlp.mp.utils.SynonymDictionary;
+import de.snlp.mp.utils.Utils;
 import edu.mit.jwi.item.POS;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
@@ -46,7 +47,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			factFolder.mkdirs();
 
 		StanfordLib stanfordLib = new StanfordLib();
-		List<Fact> facts = FactFileHandler.readFactsFromFile();
+		List<Fact> facts = FactFileHandler.readFactsFromFile(true);
 
 		setFileCount(corpus);
 		Utils.log("Found " + fileCounter + " files in the corpus to process.");

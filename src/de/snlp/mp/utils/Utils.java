@@ -1,4 +1,4 @@
-package de.snlp.mp.text_analysis;
+package de.snlp.mp.utils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

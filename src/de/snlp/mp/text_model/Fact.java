@@ -1,4 +1,4 @@
-package de.snlp.mp.fact_checking;
+package de.snlp.mp.text_model;
 
 import java.util.List;
 
@@ -9,6 +9,12 @@ public class Fact {
 	private double truthvalue;
 	
 	private List<List<String>> wordsWithSynonyms;
+
+	public Fact(String factId, String factStatement) {
+		this.factId = factId;
+		this.factStatement = factStatement;
+		this.setTruthvalue(0);
+	}
 
 	public Fact(String factId, String factStatement, double truthvalue) {
 		this.factId = factId;

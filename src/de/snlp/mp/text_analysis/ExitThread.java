@@ -2,6 +2,8 @@ package de.snlp.mp.text_analysis;
 
 import java.util.Scanner;
 
+import de.snlp.mp.utils.Utils;
+
 public class ExitThread extends Thread {
 
 	/**

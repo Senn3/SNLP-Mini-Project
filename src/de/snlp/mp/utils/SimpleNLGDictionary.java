@@ -1,4 +1,4 @@
-package de.snlp.mp.fact_checking;
+package de.snlp.mp.utils;
 
 import java.util.ArrayList;
 import java.util.List;
