@@ -4,7 +4,7 @@ import java.io.File;
 
 public class RemoveFolder {
 
-	public static void Main(String[] args) {
+	public static void main(String[] args) {
 		if (args.length != 1) {
 			Utils.log("The number of arguments have to be 1!");
 			Utils.log("1. The folder which should be removed");
