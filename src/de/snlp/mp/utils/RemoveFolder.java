@@ -11,7 +11,7 @@ public class RemoveFolder {
 			System.exit(255);
 		}
 
-		File dir = new File("D:\\Test");
+		File dir = new File(args[0]);
 		if (dir.isDirectory())
 			removeDirChilds(dir);
 		removeFile(dir);
