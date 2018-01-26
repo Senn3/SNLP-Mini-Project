@@ -10,6 +10,8 @@ public class PauseThread extends Thread {
 
 	public static final String CONTINUE_COMMAND = "c";
 
+	public static final String QUIT_COMMAND = "q";
+
 	@Override
 	public void run() {
 		Scanner s = new Scanner(System.in);
@@ -24,6 +26,11 @@ public class PauseThread extends Thread {
 				isRunning = true;
 				System.out.print("-C-");
 			}
+			if (line.equals(QUIT_COMMAND)) {
+				System.out.print("-Q-");
+				break;
+			}
+
 		}
 		s.close();
 	}
