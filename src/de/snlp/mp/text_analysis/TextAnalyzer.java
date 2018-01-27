@@ -26,7 +26,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	public static File corpus = new File("C:\\Wikipedia Corpus");
 
-	private static File factFolder = new File("F:\\FactRelatedTexts Test");
+	private static File factFolder = new File("F:\\FactRelatedTexts Train");
 
 	private static File processedFilesSave = new File("ProcessedFiles.txt");
 
@@ -61,7 +61,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			factFolder.mkdirs();
 
 		StanfordLib stanfordLib = new StanfordLib();
-		List<Fact> facts = FactFileHandler.readFactsFromFile(false);
+		List<Fact> facts = FactFileHandler.readFactsFromFile(true);
 
 		setFileCount(corpus);
 		Utils.log("Found " + fileCounter + " files in the corpus to process.");
@@ -85,8 +85,9 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		Utils.log("Start looking for fact statements in the corpus.");
 		goThroughCorpus(corpus, facts, pauseThread);
 
-		writeListToFile(processedFilesSave, processedFiles, true);
-		Utils.log("Finished program.");
+		if (processedFiles.size() < fileCounter)
+			writeListToFile(processedFilesSave, processedFiles, false);
+		Utils.log("Finished program with "+processedFiles.size()+" processed files.");
 		System.exit(0);
 	}
 

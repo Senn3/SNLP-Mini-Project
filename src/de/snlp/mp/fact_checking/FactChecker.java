@@ -17,12 +17,18 @@ public class FactChecker {
 
 	private static final boolean DEBUG = true;
 
-	private static final File pathToFactRelatedTexts = new File("FactRelatedTexts");
+	private static final File pathToFactRelatedTexts = new File("F:\\FactRelatedTexts Train");
 
 	private static final StanfordLib stanfordLib = new StanfordLib();
 
-	private static int rightPrognosis = 0;
-	private static int wrongPrognosis = 0;
+	private static int rightPrognosis1 = 0;
+	private static int wrongPrognosis1 = 0;
+
+	private static int rightPrognosis2 = 0;
+	private static int wrongPrognosis2 = 0;
+
+	private static int rightPrognosis3 = 0;
+	private static int wrongPrognosis3 = 0;
 
 	public static void main(String[] args) {
 
@@ -31,19 +37,13 @@ public class FactChecker {
 		for (Fact f : facts) {
 			String factStatement = Utils.replaceSpecialChars(f.getFactStatement());
 			String factId = f.getFactId();
-			if (DEBUG) {
-				// Utils.log("Processing fact: " + factStatement + ", " + factId);
-			}
+//			Utils.log(factId);
 
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 
-			// TODO add stuff like this for more words? e.g. better half
-			// add 'bear' to verbs if birth place or nascence place is used in statement
-			if (nouns.contains("birth") || nouns.contains("nascence"))
-				verbs.add("bear");
-
 			List<List<String>> synonyms = Utils.getSynonyms(nouns, POS.NOUN);
+			// System.out.println(synonyms);
 			synonyms.addAll(Utils.getSynonyms(verbs, POS.VERB));
 
 			// files that contain the same words as the fact.
@@ -55,51 +55,42 @@ public class FactChecker {
 				for (File fi : relatedFactFiles) {
 					List<String> matchingLinesForFile = getMatchingLinesOfFile(fi, synonyms);
 					if (matchingLinesForFile.size() != 0) {
-						if (DEBUG) {
-							Utils.log("Found " + matchingLinesForFile.size() + " matching line(s) in text \"" + fi.getName());
-						}
 						matchingLines.addAll(matchingLinesForFile);
 					}
 				}
 
-				if (isStatementPartOfMatchingLine(matchingLines, factStatement)) {
-					f.setTruthvalue(1.0);
-					if (DEBUG) {
-						Utils.log("Statement is contained in matching line" + factStatement + ", " + factId);
-						if (f.getTruthvalue() == 1)
-							rightPrognosis++;
+				if (DEBUG) {
+					if (matchingLines.size() == 0) {
+						if (f.getTruthvalue() == 0)
+							rightPrognosis1++;
 						else
-							wrongPrognosis++;
-					}
-				} else {
-					if (DEBUG) {
-						if (matchingLines.size() == 0) {
-							if (f.getTruthvalue() == 0)
-								rightPrognosis++;
-							else
-								wrongPrognosis++;
-						} else {
-							if (f.getTruthvalue() == 1)
-								rightPrognosis++;
-							else
-								wrongPrognosis++;
-						}
+							wrongPrognosis1++;
+					} else {
+						if (f.getTruthvalue() == 1)
+							rightPrognosis2++;
+						else
+							wrongPrognosis2++;
 					}
 				}
 			} else {
 				if (DEBUG) {
-					// Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
+//					Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
 					if (f.getTruthvalue() == 0)
-						rightPrognosis++;
-					else
-						wrongPrognosis++;
+						rightPrognosis3++;
+					else {
+						wrongPrognosis3++;
+						// Utils.log(factStatement+" "+synonyms);
+					}
 				}
 				f.setTruthvalue(-1.0);
 			}
 		}
 
-		if (DEBUG)
-			Utils.log("Right Prognosis: " + rightPrognosis + " - Wrong Prognosis: " + wrongPrognosis);
+		if (DEBUG) {
+			Utils.log("No matching line -> Right Prognosis: " + rightPrognosis1 + " - Wrong Prognosis: " + wrongPrognosis1);
+			Utils.log("At least 1 matching line -> Right Prognosis: " + rightPrognosis2 + " - Wrong Prognosis: " + wrongPrognosis2);
+			Utils.log("No files found -> Right Prognosis: " + rightPrognosis3 + " - Wrong Prognosis: " + wrongPrognosis3);
+		}
 
 		FactFileHandler.writeFactsToFile(facts);
 	}
@@ -124,12 +115,4 @@ public class FactChecker {
 		return lines;
 	}
 
-	private static boolean isStatementPartOfMatchingLine(List<String> matchingLines, String factStatement) {
-		for (String s : matchingLines) {
-			if (s.contains(factStatement)) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

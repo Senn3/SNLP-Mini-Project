@@ -22,17 +22,62 @@ public class Utils {
 		for (Corefs c : model.getCorefs()) {
 			if (c.getType().equals("PROPER")) {
 				if (c.getText().contains(" , ")) {
-					nouns.add(c.getText().split(" , ")[0]);
 					nouns.add(c.getText().split(" , ")[1]);
 				} else {
-					nouns.add(c.getText().replaceAll(" 's", ""));
+					String text = c.getText();
+					if (text.contains(" 's")) {
+						text = text.replaceAll(" 's", "");
+					}
+					if (c.getText().contains("s '")) {
+						text = text.replaceAll("s '", "");
+					}
+					if (text.contains("-LRB-") && text.contains("-RRB-")) {
+						String content = text.substring(0, text.indexOf("-LRB-") - 1);
+						String braceContent = text.substring(text.indexOf("-LRB-") + 6, text.indexOf("-RRB-") - 1);
+						nouns.add(content);
+						nouns.add(braceContent);
+					} else {
+						nouns.add(text);
+					}
 				}
+
 			}
 		}
 
-		for (Token t : model.getSentences().get(0).getTokens()) {
+		// for (Token t : model.getSentences().get(0).getTokens()) {
+		for (int i = 0; i < model.getSentences().get(0).getTokens().size(); i++) {
+			Token t = model.getSentences().get(0).getTokens().get(i);
 			if (t.getPos().contains("NN") && !t.getPos().contains("P")) {
-				nouns.add(t.getOriginalText());
+				String text = t.getOriginalText();
+				if (i != model.getSentences().get(0).getTokens().size() - 1) {
+					if (t.getOriginalText().equalsIgnoreCase("birth")
+							&& model.getSentences().get(0).getTokens().get(i + 1).getOriginalText().equalsIgnoreCase("place")) {
+						i++;
+						text = "birthplace";
+					} else if (t.getOriginalText().equalsIgnoreCase("nascence")
+							&& model.getSentences().get(0).getTokens().get(i + 1).getOriginalText().equalsIgnoreCase("place")) {
+						i++;
+						text = "birthplace";
+					} else if (t.getOriginalText().equalsIgnoreCase("death")
+							&& model.getSentences().get(0).getTokens().get(i + 1).getOriginalText().equalsIgnoreCase("place")) {
+						i++;
+						text = "deathplace";
+					} else if (t.getOriginalText().equalsIgnoreCase("place")
+							&& model.getSentences().get(0).getTokens().get(i - 1).getOriginalText().equalsIgnoreCase("last")) {
+						i++;
+						text = "deathplace";
+					} else if (t.getOriginalText().equalsIgnoreCase("innovation")
+							&& model.getSentences().get(0).getTokens().get(i + 1).getOriginalText().equalsIgnoreCase("place")) {
+						i++;
+						text = "innovation place";
+					} else if (t.getOriginalText().equalsIgnoreCase("foundation")
+							&& model.getSentences().get(0).getTokens().get(i + 1).getOriginalText().equalsIgnoreCase("place")) {
+						i++;
+						text = "innovation place";
+					}
+				}
+				nouns.add(text);
+
 			}
 
 		}
@@ -91,15 +136,49 @@ public class Utils {
 	public static List<List<String>> getSynonyms(List<String> words, POS type) {
 		if (synonymDictionary == null)
 			synonymDictionary = new SynonymDictionary();
-		;
+
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		for (int i = 0; i < words.size(); i++) {
 			wordsWithSynonyms.add(new ArrayList<String>());
+			if (words.get(i).equals("birthplace")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("born in").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("nascence place").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("bear").toLowerCase());
+			}
+			if (words.get(i).equals("deathplace")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("place of death").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("death place").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("died").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("last place").toLowerCase());
+			}
+			if (words.get(i).equals("half")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("partner").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("boyfriend").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("girlfriend").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("man").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("woman").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("spouse").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("married").toLowerCase());
+			}
+			if (words.get(i).equals("innovation place")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("innovation place").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("foundation place").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("founded at").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("founded in").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("established in").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("established at").toLowerCase());
+			}
+			if (words.get(i).equals("award") || words.get(i).equals("honour")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("won").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("awarded").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("earned").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("received").toLowerCase());
+			}
 
 			for (String st : synonymDictionary.getSynonyms(words.get(i), type))
-				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(st).toLowerCase());
-			if (wordsWithSynonyms.get(i).isEmpty())
-				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(words.get(i)).toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(st).toLowerCase().replaceAll("_", " "));
+			if (!wordsWithSynonyms.get(i).contains(Utils.replaceSpecialChars(words.get(i)).toLowerCase()))
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(words.get(i)).toLowerCase().replaceAll("_", " "));
 		}
 		return wordsWithSynonyms;
 	}
