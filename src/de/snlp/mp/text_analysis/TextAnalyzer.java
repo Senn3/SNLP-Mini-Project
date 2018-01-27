@@ -26,7 +26,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 
 	public static File corpus = new File("C:\\Wikipedia Corpus");
 
-	private static File factFolder = new File("F:\\FactRelatedTexts Train");
+	private static File factFolder = new File("F:\\FactRelatedTexts Test");
 
 	private static File processedFilesSave = new File("ProcessedFiles.txt");
 
@@ -61,7 +61,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			factFolder.mkdirs();
 
 		StanfordLib stanfordLib = new StanfordLib();
-		List<Fact> facts = FactFileHandler.readFactsFromFile(true);
+		List<Fact> facts = FactFileHandler.readFactsFromFile(false);
 
 		setFileCount(corpus);
 		Utils.log("Found " + fileCounter + " files in the corpus to process.");
@@ -86,7 +86,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		goThroughCorpus(corpus, facts, pauseThread);
 
 		if (processedFiles.size() < fileCounter)
-			writeListToFile(processedFilesSave, processedFiles, false);
+			Utils.writeListToFile(processedFilesSave, processedFiles, false);
 		Utils.log("Finished program with "+processedFiles.size()+" processed files.");
 		System.exit(0);
 	}
@@ -171,17 +171,6 @@ public class TextAnalyzer extends StanfordCoreNLP {
 					processedFiles.add(line);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void writeListToFile(File f, List<String> list, boolean append) {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f, append))) {
-			for (String s : list) {
-				writer.write(s + "\n");
-			}
-			writer.flush();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

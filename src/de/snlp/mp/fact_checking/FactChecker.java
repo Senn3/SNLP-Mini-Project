@@ -37,7 +37,7 @@ public class FactChecker {
 		for (Fact f : facts) {
 			String factStatement = Utils.replaceSpecialChars(f.getFactStatement());
 			String factId = f.getFactId();
-//			Utils.log(factId);
+			// Utils.log(factId);
 
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
@@ -63,18 +63,23 @@ public class FactChecker {
 					if (matchingLines.size() == 0) {
 						if (f.getTruthvalue() == 0)
 							rightPrognosis1++;
-						else
+						else {
+							Utils.log("No matching line but statement is true: " + factId + " - " + factStatement);
 							wrongPrognosis1++;
+						}
 					} else {
 						if (f.getTruthvalue() == 1)
 							rightPrognosis2++;
-						else
+						else {
+							Utils.log(matchingLines.size() + " matching line(s) but statement is false: " + factId + " - " + factStatement
+									+ " - Line: \"" + matchingLines.get(0) + "\"");
 							wrongPrognosis2++;
+						}
 					}
 				}
 			} else {
 				if (DEBUG) {
-//					Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
+					// Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
 					if (f.getTruthvalue() == 0)
 						rightPrognosis3++;
 					else {
@@ -92,6 +97,7 @@ public class FactChecker {
 			Utils.log("No files found -> Right Prognosis: " + rightPrognosis3 + " - Wrong Prognosis: " + wrongPrognosis3);
 		}
 
+		Utils.printOutput(FactChecker.class.getName());
 		FactFileHandler.writeFactsToFile(facts);
 	}
 

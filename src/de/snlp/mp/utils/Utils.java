@@ -1,5 +1,9 @@
 package de.snlp.mp.utils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,6 +20,8 @@ public class Utils {
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
 	private static SynonymDictionary synonymDictionary = new SynonymDictionary();
+
+	private static List<String> output = new ArrayList<String>();
 
 	public static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
 		List<String> nouns = new ArrayList<String>();
@@ -141,7 +147,7 @@ public class Utils {
 		for (int i = 0; i < words.size(); i++) {
 			wordsWithSynonyms.add(new ArrayList<String>());
 			if (words.get(i).equals("birthplace")) {
-				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("born in").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("born").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("nascence place").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("bear").toLowerCase());
 			}
@@ -196,7 +202,9 @@ public class Utils {
 	}
 
 	public static void log(String s) {
-		System.out.println(df.format(new Date()) + " - " + s);
+		String o = df.format(new Date()) + " - " + s;
+		System.out.println(o);
+		output.add(o);
 	}
 
 	public static String replaceSpecialChars(String text) {
@@ -266,5 +274,24 @@ public class Utils {
 				array[i] = 'u';
 		}
 		return new String(array);
+	}
+
+	public static void printOutput(String className) {
+		int counter = 1;
+		while (new File("Output-" + className + "-" + counter + ".txt").exists())
+			counter++;
+		File f = new File("Output-" + className + "-" + counter + ".txt");
+		writeListToFile(f, output, false);
+	}
+
+	public static void writeListToFile(File f, List<String> list, boolean append) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f, append))) {
+			for (String s : list) {
+				writer.write(s + "\n");
+			}
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
