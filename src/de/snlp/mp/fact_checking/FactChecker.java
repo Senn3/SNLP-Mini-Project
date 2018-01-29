@@ -13,19 +13,35 @@ import de.snlp.mp.utils.FactFileHandler;
 import de.snlp.mp.utils.Utils;
 import edu.mit.jwi.item.POS;
 
+/**
+ * This class is processing the statements and assigns a truth value to them. Every statement, respectively fact, is processed on its own.
+ * The nouns and verbs are extracted from a statement. Afterwards it is checked whether any of those have synonyms. When that is done, it is
+ * checked if any of the text files, which have been declared to be related to the statement beforehand, contain any lines, which contain
+ * all of the previously extracted words from the statement. If a matching line was found '1.0' is assigned to the current statement. If no
+ * matching line was found or if there are no related texts for the statement, the statement is assigned '-1.0'.
+ * 
+ * @author Patrick Thiele
+ *
+ */
 public class FactChecker {
 
+	/**
+	 * Defines whether the program should run in debug mode.
+	 */
 	private static final boolean DEBUG = false;
 
+	/**
+	 * Contains the path to the folder with all of the related texts for the statements.
+	 */
 	private static final File pathToFactRelatedTexts = new File("F:\\FactRelatedTexts Test");
 
 	/**
-	 * The standord library which is needed to get the nouns from the facts
+	 * The stanford library which is needed to get the nouns from the facts.
 	 */
 	private static final StanfordLib stanfordLib = new StanfordLib();
 
 	/**
-	 * Some values to analyze the result
+	 * Some values to analyze the result.
 	 */
 	private static int rightPrognosis1 = 0;
 	private static int wrongPrognosis1 = 0;
@@ -106,11 +122,22 @@ public class FactChecker {
 		FactFileHandler.writeFactsToFile(facts);
 	}
 
+	/**
+	 * Returns the files which texts are related to the given statement.
+	 * @param id The id of the statement.
+	 * @return An array containing all the files that are related to the given statement.
+	 */
 	private static File[] getRelatedFactFiles(String id) {
 		File relatedFactFilePath = new File(pathToFactRelatedTexts, id);
 		return relatedFactFilePath.exists() ? relatedFactFilePath.listFiles() : null;
 	}
 
+	/**
+	 * Returns all the lines of a given file, which contain the words of a statement including the synonyms of its words.
+	 * @param f The file to look for matching lines.
+	 * @param synonyms A list of a list of strings. Contains the nouns, names and verbs of the statement, including their synonyms.
+	 * @return A list, where every element is a matching line.
+	 */
 	private static List<String> getMatchingLinesOfFile(File f, List<List<String>> synonyms) {
 		List<String> lines = new ArrayList<String>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
