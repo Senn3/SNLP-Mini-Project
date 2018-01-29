@@ -2,6 +2,11 @@ package de.snlp.mp.text_analysis;
 
 import java.util.Scanner;
 
+/**
+ * This class is needed to pause, continue and quit the text analysis.
+ * @author Daniel Possienke
+ *
+ */
 public class PauseThread extends Thread {
 
 	private boolean isRunning = true;

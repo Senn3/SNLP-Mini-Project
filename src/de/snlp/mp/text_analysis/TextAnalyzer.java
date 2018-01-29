@@ -1,11 +1,9 @@
 package de.snlp.mp.text_analysis;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -20,23 +18,56 @@ import de.snlp.mp.utils.Utils;
 import edu.mit.jwi.item.POS;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
+/**
+ * This class analyzes the corpus. The first step for this is to extract all articles from the original corpus, which is created by the
+ * wikiextractor script (https://github.com/attardi/wikiextractor). Afterwards it checks whether an article contains all the nouns (or the
+ * corresponding synonyms) of one of the facts. In the case that all nouns or synonyms are part of an article, it will be copied to a
+ * folder, which is named after the fact id. This program result in a folder with 1301 (the number of facts) subfolders, where each folder
+ * can contain wikipedia articles according to the number of matches between the nouns and synonyms of the statement and the content of the
+ * articles.
+ * @author Daniel Possienke
+ *
+ */
 public class TextAnalyzer extends StanfordCoreNLP {
 
+	/**
+	 * This variable defines whether additional output should be given.
+	 */
 	private static final boolean DEBUG = false;
 
+	/**
+	 * The default folder, where the corpus is saved.
+	 */
 	public static File corpus = new File("C:\\Wikipedia Corpus");
 
+	/**
+	 * The default result folder. In this folder will be a separate folder for each fact created, in which the corresponding articles will
+	 * be copied.
+	 */
 	private static File factFolder = new File("F:\\FactRelatedTexts Test");
 
+	/**
+	 * The file, where the names of the processed files are saved.
+	 */
 	private static File processedFilesSave = new File("ProcessedFiles.txt");
 
+	/**
+	 * The number of files in the corpus.
+	 */
 	private static int fileCounter;
 
+	/**
+	 * The default minimum number of lines an article needs to be processed.
+	 */
 	private static int minTextLength = 5;
 
+	/**
+	 * The list, where the names of the processed files are saved.
+	 */
 	private static List<String> processedFiles = new ArrayList<String>();
 
 	public static void main(String[] args) {
+		// If no argument is given, use the default values.
 		if (args.length == 0) {
 			Utils.log("No argument found. ");
 			Utils.log("Use \"" + corpus.getAbsolutePath() + "\" as corpus folder.");
@@ -83,21 +114,28 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		}
 
 		Utils.log("Start looking for fact statements in the corpus.");
-		goThroughCorpus(corpus, facts, pauseThread);
+		processCorpus(corpus, facts, pauseThread);
 
 		if (processedFiles.size() < fileCounter)
 			Utils.writeListToFile(processedFilesSave, processedFiles, false);
-		Utils.log("Finished program with "+processedFiles.size()+" processed files.");
+		Utils.log("Finished program with " + processedFiles.size() + " processed files.");
 		System.exit(0);
 	}
 
-	private static void goThroughCorpus(File f, List<Fact> facts, PauseThread pauseThread) {
+	/**
+	 * This methods goes recursive through the corpus and process each files.
+	 * @param f The current file.
+	 * @param facts The list of facts.
+	 * @param pauseThread The thread, which is needed to pause, continue and quit the process.
+	 */
+	private static void processCorpus(File f, List<Fact> facts, PauseThread pauseThread) {
 		if (f.isDirectory()) {
 			for (File child : f.listFiles()) {
 				if (pauseThread.isAlive())
-					goThroughCorpus(child, facts, pauseThread);
+					processCorpus(child, facts, pauseThread);
 			}
 		} else {
+			// Wait until the user continues or quit the thread
 			while (pauseThread.isAlive() && !pauseThread.isRunning()) {
 				try {
 					Thread.sleep(3000);
@@ -105,9 +143,11 @@ public class TextAnalyzer extends StanfordCoreNLP {
 					e.printStackTrace();
 				}
 			}
+			// Is the current file already processed?
 			if (!processedFiles.contains(f.getAbsolutePath())) {
 				processedFiles.add(f.getAbsolutePath());
 				List<Article> articleList = CorpusReader.readInput(f, minTextLength);
+				// Go through the list of articles of a document.
 				for (Article a : articleList) {
 					String content = Utils.replaceSpecialChars(a.getContent().toLowerCase());
 					for (Fact fact : facts) {
@@ -120,6 +160,10 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		}
 	}
 
+	/**
+	 * Create a directory where the matching articles for the fact should be saved.
+	 * @param id The id of the fact.
+	 */
 	private static void createFactDirs(String id) {
 		if (!factFolder.exists() || factFolder.isFile())
 			factFolder.mkdirs();
@@ -127,6 +171,11 @@ public class TextAnalyzer extends StanfordCoreNLP {
 			new File(factFolder + "/" + id).mkdirs();
 	}
 
+	/**
+	 * Copies an article to the folder where all articles for the corresponding fact are saved.
+	 * @param id The id of the fact.
+	 * @param a The article.
+	 */
 	private static void addFileToDir(String id, Article a) {
 		File f = new File(factFolder + "/" + id + "/" + convertToWindowsFileNameRules(a.getName()) + ".txt");
 		try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
@@ -137,6 +186,11 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		}
 	}
 
+	/**
+	 * Converts a file name to match the windows file name rules.
+	 * @param name The file name.
+	 * @return The file name according to the windows file name rules.
+	 */
 	private static String convertToWindowsFileNameRules(String name) {
 		name = name.replace("<", " ");
 		name = name.replace(">", " ");
@@ -150,6 +204,10 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		return name;
 	}
 
+	/**
+	 * Goes through the corpus and count the number of files.
+	 * @param folder The corpus.
+	 */
 	private static void setFileCount(File folder) {
 		for (File f : folder.listFiles()) {
 			if (f.isDirectory())
@@ -161,6 +219,9 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		}
 	}
 
+	/**
+	 * Reads the file where the processed documents are saved and writes them to the list "processedFiles"
+	 */
 	private static void readProcessedDocs() {
 		if (!processedFilesSave.exists())
 			return;

@@ -1,5 +1,10 @@
 package de.snlp.mp.text_model;
 
+/**
+ * This class represents a token from a sentence from the text model, which is given by the stanford library.
+ * @author Daniel Possienke
+ *
+ */
 public class Token {
 
 	private int index;

@@ -6,8 +6,17 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
+/**
+ * This class converts the json string, which is given by the stanford library to a list of corefs. This can't be done like all other
+ * values, because the format of the json string isn't valid.
+ * @author Daniel Possienke
+ *
+ */
 public class CorefsHeader {
 
+	/**
+	 * The list of the corefs.
+	 */
 	private static List<Corefs> corefs = new ArrayList<Corefs>();
 
 	@SuppressWarnings("unchecked")
@@ -36,6 +45,10 @@ public class CorefsHeader {
 		return corefs;
 	}
 
+	/**
+	 * This method is needed to reset the list of corefs. This is done each time before a new text or line is converted by the stanford
+	 * library in the StanfordLib class.
+	 */
 	public static void clearCorefs() {
 		corefs = new ArrayList<Corefs>();
 	}

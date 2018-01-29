@@ -15,14 +15,28 @@ import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.text_model.Token;
 import edu.mit.jwi.item.POS;
 
+/**
+ * This class contains a bunch of methods which are needed for the corpus analyze as well as for the fact checking.
+ * @author Daniel Possienke
+ *
+ */
 public class Utils {
 
 	private static DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
 	private static SynonymDictionary synonymDictionary = new SynonymDictionary();
 
+	/**
+	 * The list of output lines, which can be written to a file.
+	 */
 	private static List<String> output = new ArrayList<String>();
 
+	/**
+	 * Returns all nouns from a text or line.
+	 * @param model The text model.
+	 * @param factStatement The text or line.
+	 * @return A list of nouns.
+	 */
 	public static List<String> getNounsFromTextModel(TextModel model, String factStatement) {
 		List<String> nouns = new ArrayList<String>();
 		for (Corefs c : model.getCorefs()) {
@@ -37,6 +51,7 @@ public class Utils {
 					if (c.getText().contains("s '")) {
 						text = text.replaceAll("s '", "");
 					}
+					// Does the noun contains something like "2012 (Movie)"?
 					if (text.contains("-LRB-") && text.contains("-RRB-")) {
 						String content = text.substring(0, text.indexOf("-LRB-") - 1);
 						String braceContent = text.substring(text.indexOf("-LRB-") + 6, text.indexOf("-RRB-") - 1);
@@ -50,7 +65,6 @@ public class Utils {
 			}
 		}
 
-		// for (Token t : model.getSentences().get(0).getTokens()) {
 		for (int i = 0; i < model.getSentences().get(0).getTokens().size(); i++) {
 			Token t = model.getSentences().get(0).getTokens().get(i);
 			if (t.getPos().contains("NN") && !t.getPos().contains("P")) {
@@ -90,6 +104,12 @@ public class Utils {
 		return nouns;
 	}
 
+	/**
+	 * Returns all the verbs from a text or line.
+	 * @param model The text model.
+	 * @param factStatement The text or line.
+	 * @return A list of verbs.
+	 */
 	public static List<String> getVerbsFromTextModel(TextModel model, String factStatement) {
 		List<String> verbs = new ArrayList<String>();
 		for (Token t : model.getSentences().get(0).getTokens()) {
@@ -102,6 +122,13 @@ public class Utils {
 		return verbs;
 	}
 
+	/**
+	 * This methods tests whether a text contains at least one word out of the given list.
+	 * @param text The text.
+	 * @param wordList The list of words.
+	 * @param printMatch Should each match be printed out?
+	 * @return Returns true if the text contains at least one word for each list.
+	 */
 	public static boolean textContainsWordList(String text, List<List<String>> wordList, boolean printMatch) {
 		String match = "";
 		for (int i = 0; i < wordList.size(); i++) {
@@ -122,6 +149,13 @@ public class Utils {
 		return true;
 	}
 
+	/**
+	 * This methods tests whether a given word is part of a text. The String.contains() method can't be used instead, because it returns
+	 * true if the word is a subsequence of an other word.
+	 * @param text The text.
+	 * @param word The word.
+	 * @return Is the word part of the text?
+	 */
 	private static boolean textContainsWord(String text, String word) {
 		if (text.contains(" " + word) || text.contains("-" + word))
 			return true;
@@ -139,10 +173,15 @@ public class Utils {
 		return false;
 	}
 
+	/**
+	 * Gets a list of synonyms for a list of words. Each list contains the original word plus the synonyms.
+	 * @param words The words
+	 * @param type The type of the words.
+	 * @return The list of synonyms.
+	 */
 	public static List<List<String>> getSynonyms(List<String> words, POS type) {
 		if (synonymDictionary == null)
 			synonymDictionary = new SynonymDictionary();
-
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		for (int i = 0; i < words.size(); i++) {
 			wordsWithSynonyms.add(new ArrayList<String>());
@@ -189,24 +228,21 @@ public class Utils {
 		return wordsWithSynonyms;
 	}
 
-	public static void printSynonymList(String text, List<List<String>> wordsWithSynonyms) {
-		String output = "";
-		for (List<String> list : wordsWithSynonyms) {
-			for (String word : list) {
-				output += (word + " - ");
-			}
-			output += " | ";
-		}
-		output = output.substring(0, output.toCharArray().length - 3);
-		Utils.log("Statement: " + text + "     Nouns: " + output);
-	}
-
+	/**
+	 * Writes a string to the console in a formatted way and add the string to the output list, which can be written to a file at the end.
+	 * @param s The text.
+	 */
 	public static void log(String s) {
 		String o = df.format(new Date()) + " - " + s;
 		System.out.println(o);
 		output.add(o);
 	}
 
+	/**
+	 * Replaces all special character with normal ones.
+	 * @param text The text with potential special characters.
+	 * @return The text without special characters,
+	 */
 	public static String replaceSpecialChars(String text) {
 		text = text.replace("ä", "ae").replace("Ä", "Ae").replace("ü", "ue").replace("Ü", "Ue").replace("ö", "oe").replace("ß", "ss");
 		char[] array = text.toCharArray();
@@ -276,14 +312,25 @@ public class Utils {
 		return new String(array);
 	}
 
+	/**
+	 * Prints the saved output to a file.
+	 * @param className The name of the main class.
+	 */
 	public static void printOutput(String className) {
 		int counter = 1;
+		// Does a file with the given name already exist?
 		while (new File("Output-" + className + "-" + counter + ".txt").exists())
 			counter++;
 		File f = new File("Output-" + className + "-" + counter + ".txt");
 		writeListToFile(f, output, false);
 	}
 
+	/**
+	 * Writes a list of strings to file.
+	 * @param f The file in which the string list should be written.
+	 * @param list The list of strings which should be written to a file.
+	 * @param append Should the list of string be added to the file or should the file content be deleted first?
+	 */
 	public static void writeListToFile(File f, List<String> list, boolean append) {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(f, append))) {
 			for (String s : list) {

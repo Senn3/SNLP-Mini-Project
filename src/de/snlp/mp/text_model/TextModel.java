@@ -3,6 +3,11 @@ package de.snlp.mp.text_model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class represents the model, which is given by the stanford library.
+ * @author Daniel Possienke
+ *
+ */
 public class TextModel {
 
 	private List<Sentence> sentences;

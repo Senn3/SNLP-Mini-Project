@@ -2,6 +2,11 @@ package de.snlp.mp.text_model;
 
 import java.util.List;
 
+/**
+ * This class represents a sentence from the text model, which is given by the stanford library.
+ * @author Daniel Possienke
+ *
+ */
 public class Sentence {
 
 	private int index;

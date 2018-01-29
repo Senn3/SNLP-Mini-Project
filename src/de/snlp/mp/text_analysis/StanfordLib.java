@@ -19,13 +19,17 @@ import edu.stanford.nlp.io.RuntimeIOException;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 
+/**
+ * This class is used to apply the stanford library on a given text.
+ * @author Daniel Possienke
+ *
+ */
 public class StanfordLib {
 
 	private StanfordCoreNLP pipeline;
 
 	/**
-	 * Initialisiert die StanfordCoreNLP Bibliothek. Falls das Modell für die englische Sprache fehlt wird das Programm beendet und eine
-	 * entsprechende Nachricht ausgegeben.
+	 * Initializes the stanfordCoreNLP library. The program is going to be quit if the model for the english language is missing.
 	 */
 	public StanfordLib() {
 		try {
@@ -42,7 +46,7 @@ public class StanfordLib {
 	}
 
 	/**
-	 * Lädt das Modell für die englische Sprache herunter und beendet das Programm, falls ein Fehler beim Download auftritt.
+	 * Downloads the model for the english language and quit the program with a corresponding message to add the model to the build path.
 	 */
 	private void donwloadModel() {
 		File file = new File("stanford-english-corenlp-models.jar");
@@ -52,7 +56,8 @@ public class StanfordLib {
 				URL url = new URL("https://nlp.stanford.edu/software/stanford-english-corenlp-2017-06-09-models.jar");
 				FileUtils.copyURLToFile(url, file);
 			}
-			Utils.log("Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
+			Utils.log(
+					"Download finish. Add the \\\"stanford-english-corenlp-models.jar\\\" file to the build path and/or refresh the project.");
 		} catch (IOException e) {
 			Utils.log("Download failed. Exit program.");
 			if (file.exists())
@@ -63,8 +68,9 @@ public class StanfordLib {
 	}
 
 	/**
-	 * Startet den Prozess, indem die Datei durch die StanfordNLP Library in ein json-String umgewandelt wird und anschließend in ein
-	 * TextModel-Objekt konvertiert wird.
+	 * Starts the process to convert a text or line to a text model object with the help of the stanford library.
+	 * @param content The text or line which should be converted.
+	 * @return The corresponding text model object.
 	 */
 	public TextModel getTextModel(String content) {
 		try {
@@ -77,7 +83,6 @@ public class StanfordLib {
 			String json = getJsonFile(content);
 			json = json.replaceAll("\"corefs\": \\{", "\"corefs\": \\[{").substring(0, json.toCharArray().length - 2) + " }]}";
 			CorefsHeader.clearCorefs();
-//			System.out.println(json);
 
 			return mapper.readValue(json, TextModel.class);
 		} catch (IOException e) {
@@ -88,13 +93,9 @@ public class StanfordLib {
 	}
 
 	/**
-	 * Wendet die StanfordNLP an und erstellt aus dem Resulutat eine Json-String
-	 * 
-	 * @param Der
-	 *            Name des Artikels, der für das Verwerfen von Fehlermeldungen gebraucht wird
-	 * @param Der
-	 *            unbearbeitete Kontent des Artikels
-	 * @return Der Json-String von dem Artikel
+	 * Converts a text or line to a json file.
+	 * @param content The text or line which should be converted.
+	 * @return The corresponding json string.
 	 */
 	private String getJsonFile(String content) {
 		try {

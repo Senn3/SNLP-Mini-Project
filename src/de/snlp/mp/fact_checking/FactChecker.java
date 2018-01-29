@@ -15,35 +15,37 @@ import edu.mit.jwi.item.POS;
 
 public class FactChecker {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
-	private static final File pathToFactRelatedTexts = new File("F:\\FactRelatedTexts Train");
+	private static final File pathToFactRelatedTexts = new File("F:\\FactRelatedTexts Test");
 
+	/**
+	 * The standord library which is needed to get the nouns from the facts
+	 */
 	private static final StanfordLib stanfordLib = new StanfordLib();
 
+	/**
+	 * Some values to analyze the result
+	 */
 	private static int rightPrognosis1 = 0;
 	private static int wrongPrognosis1 = 0;
-
 	private static int rightPrognosis2 = 0;
 	private static int wrongPrognosis2 = 0;
-
 	private static int rightPrognosis3 = 0;
 	private static int wrongPrognosis3 = 0;
 
 	public static void main(String[] args) {
 
-		List<Fact> facts = FactFileHandler.readFactsFromFile(true);
+		List<Fact> facts = FactFileHandler.readFactsFromFile(false);
 
 		for (Fact f : facts) {
 			String factStatement = Utils.replaceSpecialChars(f.getFactStatement());
 			String factId = f.getFactId();
-			// Utils.log(factId);
 
 			List<String> nouns = Utils.getNounsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 			List<String> verbs = Utils.getVerbsFromTextModel(stanfordLib.getTextModel(factStatement), factStatement);
 
 			List<List<String>> synonyms = Utils.getSynonyms(nouns, POS.NOUN);
-			// System.out.println(synonyms);
 			synonyms.addAll(Utils.getSynonyms(verbs, POS.VERB));
 
 			// files that contain the same words as the fact.
@@ -59,35 +61,38 @@ public class FactChecker {
 					}
 				}
 
-				if (DEBUG) {
-					if (matchingLines.size() == 0) {
-						if (f.getTruthvalue() == 0)
+				if (matchingLines.size() == 0) {
+					if (DEBUG) {
+						if (f.getTruthvalue() == 0) {
 							rightPrognosis1++;
-						else {
+						} else {
 							Utils.log("No matching line but statement is true: " + factId + " - " + factStatement);
 							wrongPrognosis1++;
 						}
-					} else {
-						if (f.getTruthvalue() == 1)
+					}
+					f.setTruthvalue(-1.0);
+				} else {
+					if (DEBUG) {
+						if (f.getTruthvalue() == 1) {
 							rightPrognosis2++;
-						else {
+						} else {
 							Utils.log(matchingLines.size() + " matching line(s) but statement is false: " + factId + " - " + factStatement
 									+ " - Line: \"" + matchingLines.get(0) + "\"");
 							wrongPrognosis2++;
 						}
 					}
+					f.setTruthvalue(1.0);
 				}
 			} else {
 				if (DEBUG) {
-					// Utils.log("Fact statement has no related texts: " + factStatement + ", " + factId);
-					if (f.getTruthvalue() == 0)
+					if (f.getTruthvalue() == 0) {
 						rightPrognosis3++;
-					else {
+					} else {
+						Utils.log("No files found but statement is true: " + factId + " - " + factStatement);
 						wrongPrognosis3++;
-						// Utils.log(factStatement+" "+synonyms);
 					}
+					f.setTruthvalue(-1.0);
 				}
-				f.setTruthvalue(-1.0);
 			}
 		}
 

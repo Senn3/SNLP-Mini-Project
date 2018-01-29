@@ -1,5 +1,10 @@
 package de.snlp.mp.text_model;
 
+/**
+ * This class represents the dependency between two words from the text model, which is given by the stanford library.
+ * @author Daniel Possienke
+ *
+ */
 public class Dependency {
 
 	private String dep;

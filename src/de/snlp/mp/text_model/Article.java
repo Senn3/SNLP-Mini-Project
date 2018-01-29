@@ -2,9 +2,21 @@ package de.snlp.mp.text_model;
 
 import java.util.List;
 
+/**
+ * This class represents a wikipedia article.
+ * @author Daniel Possienke
+ *
+ */
 public class Article {
 
+	/**
+	 * The name of the article.
+	 */
 	private String name;
+
+	/**
+	 * The content of an article, where each line is separated with "/n".
+	 */
 	private String content;
 
 	public Article(String name, String content) {

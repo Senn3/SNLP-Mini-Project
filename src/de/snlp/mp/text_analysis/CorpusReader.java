@@ -9,11 +9,30 @@ import java.util.List;
 
 import de.snlp.mp.text_model.Article;
 
+/**
+ * This class converts the wikipedia corpus, which is the result of the wikiextractor script (https://github.com/attardi/wikiextractor), to
+ * a list of articles.
+ * @author Daniel Possienke
+ *
+ */
 public class CorpusReader {
 
+	/**
+	 * The start token, which is used to define where a new article starts.
+	 */
 	private static final String START_TOKEN = "<doc";
+
+	/**
+	 * The end token, which is used to define where an article ends.
+	 */
 	private static final String END_TOKEN = "</doc>";
 
+	/**
+	 * Converts a document to a list of articles.
+	 * @param f The file, which should be converted.
+	 * @param minTextLength The minimum number of lines an article needs to be part of the output list.
+	 * @return The list of articles.
+	 */
 	public static List<Article> readInput(File f, int minTextLength) {
 		List<Article> articleList = new ArrayList<Article>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF8"))) {
@@ -60,6 +79,11 @@ public class CorpusReader {
 
 	}
 
+	/**
+	 * This methods tests whether the given line contains a start token and is thus a start line.
+	 * @param line The line which should be tested.
+	 * @return Is the given line a start line?
+	 */
 	private static boolean isStartLine(String line) {
 		if (line.length() >= START_TOKEN.length()) {
 			if (line.substring(0, START_TOKEN.length()).equals(START_TOKEN)) {
@@ -69,6 +93,11 @@ public class CorpusReader {
 		return false;
 	}
 
+	/**
+	 * This methods tests whether the given line contains a end token and is thus an end line.
+	 * @param line The line which should be tested.
+	 * @return Is the given line an end line?
+	 */
 	private static boolean isEndLine(String line) {
 		if (line.length() >= END_TOKEN.length()) {
 			if (line.substring(0, END_TOKEN.length()).equals(END_TOKEN)) {
