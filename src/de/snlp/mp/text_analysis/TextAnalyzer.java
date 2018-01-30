@@ -14,6 +14,7 @@ import de.snlp.mp.text_model.Article;
 import de.snlp.mp.text_model.Fact;
 import de.snlp.mp.text_model.TextModel;
 import de.snlp.mp.utils.FactFileHandler;
+import de.snlp.mp.utils.StanfordLib;
 import de.snlp.mp.utils.Utils;
 import edu.mit.jwi.item.POS;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;

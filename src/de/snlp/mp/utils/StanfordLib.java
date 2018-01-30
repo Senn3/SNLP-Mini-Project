@@ -1,4 +1,4 @@
-package de.snlp.mp.text_analysis;
+package de.snlp.mp.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.snlp.mp.text_model.CorefsHeader;
 import de.snlp.mp.text_model.TextModel;
-import de.snlp.mp.utils.Utils;
 import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.io.RuntimeIOException;
 import edu.stanford.nlp.pipeline.Annotation;

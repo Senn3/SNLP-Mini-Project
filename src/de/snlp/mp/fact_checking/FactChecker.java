@@ -7,9 +7,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.snlp.mp.text_analysis.StanfordLib;
 import de.snlp.mp.text_model.Fact;
 import de.snlp.mp.utils.FactFileHandler;
+import de.snlp.mp.utils.StanfordLib;
 import de.snlp.mp.utils.Utils;
 import edu.mit.jwi.item.POS;
 
@@ -34,7 +34,7 @@ public class FactChecker {
 	/**
 	 * Contains the path to the folder with all of the related texts for the statements.
 	 */
-	private static final File pathToFactRelatedTexts = new File("F:\\FactRelatedTexts Test");
+	private static File pathToFactRelatedTexts = new File("F:\\FactRelatedTexts Test");
 
 	/**
 	 * The stanford library which is needed to get the nouns from the facts.
@@ -52,6 +52,20 @@ public class FactChecker {
 	private static int wrongPrognosis3 = 0;
 
 	public static void main(String[] args) {
+		// If no argument is given, use the default values.
+		if (args.length == 0) {
+			Utils.log("No argument found. ");
+			Utils.log("Use \"" + pathToFactRelatedTexts.getAbsolutePath() + "\" as fact related article folder.");
+		} else if (args.length == 3) {
+			pathToFactRelatedTexts = new File(args[0]);
+		} else {
+			Utils.log("The number of parameters have to be 1:");
+			Utils.log("1. The fact related article folder.");
+		}
+		if (!pathToFactRelatedTexts.exists()) {
+			Utils.log("Cannot find the folder: " + pathToFactRelatedTexts.getAbsolutePath());
+			return;
+		}
 
 		List<Fact> facts = FactFileHandler.readFactsFromFile(false);
 
