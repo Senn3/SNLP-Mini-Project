@@ -1,0 +1,12 @@
+11:36:10 - No argument found. 
+11:36:10 - Use "C:\Wikipedia Corpus" as corpus folder.
+11:36:10 - Use "F:\FactRelatedTexts Test" as result folder.
+11:36:10 - Set minimum number of text lines to 5.
+11:36:10 - Initialze StanfordCoreNLP library.
+11:36:14 - Finish initialization of the StanfordCoreNLP library.
+11:36:15 - Found 12067 files in the corpus to process.
+11:36:15 - Already processed 6152 files.
+11:36:15 - The process can be quit with "q", paused with "p" and continued with "c".
+11:36:15 - Scan all facts and prepare the fact statements.
+11:36:51 - Start looking for fact statements in the corpus.
+12:03:34 - Finished program with 7104 processed files.

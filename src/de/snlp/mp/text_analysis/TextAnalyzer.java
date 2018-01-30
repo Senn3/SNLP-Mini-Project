@@ -22,7 +22,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * This class analyzes the corpus. The first step for this is to extract all articles from the original corpus, which is created by the
  * wikiextractor script (https://github.com/attardi/wikiextractor). Afterwards it checks whether an article contains all the nouns (or the
  * corresponding synonyms) of one of the facts. In the case that all nouns or synonyms are part of an article, it will be copied to a
- * folder, which is named after the fact id. This program result in a folder with 1301 (the number of facts) subfolders, where each folder
+ * folder, which is named after the fact id. This program results in a folder with 1301 (the number of facts) subfolders, where each folder
  * can contain wikipedia articles according to the number of matches between the nouns and synonyms of the statement and the content of the
  * articles.
  * @author Daniel Possienke
@@ -119,6 +119,7 @@ public class TextAnalyzer extends StanfordCoreNLP {
 		if (processedFiles.size() < fileCounter)
 			Utils.writeListToFile(processedFilesSave, processedFiles, false);
 		Utils.log("Finished program with " + processedFiles.size() + " processed files.");
+		Utils.printOutput(TextAnalyzer.class.getName());
 		System.exit(0);
 	}
 
@@ -178,11 +179,13 @@ public class TextAnalyzer extends StanfordCoreNLP {
 	 */
 	private static void addFileToDir(String id, Article a) {
 		File f = new File(factFolder + "/" + id + "/" + convertToWindowsFileNameRules(a.getName()) + ".txt");
-		try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
-			writer.write(a.getContent());
-			writer.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (!f.exists()) {
+			try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8)) {
+				writer.write(a.getContent());
+				writer.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

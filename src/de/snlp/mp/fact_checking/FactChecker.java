@@ -18,7 +18,8 @@ import edu.mit.jwi.item.POS;
  * The nouns and verbs are extracted from a statement. Afterwards it is checked whether any of those have synonyms. When that is done, it is
  * checked if any of the text files, which have been declared to be related to the statement beforehand, contain any lines, which contain
  * all of the previously extracted words from the statement. If a matching line was found '1.0' is assigned to the current statement. If no
- * matching line was found or if there are no related texts for the statement, the statement is assigned '-1.0'.
+ * matching line was found or if there are no related texts for the statement, the statement is assigned '-1.0'. Afterwards the result will
+ * be saved in a file named "result.ttl".
  * 
  * @author Patrick Thiele
  *

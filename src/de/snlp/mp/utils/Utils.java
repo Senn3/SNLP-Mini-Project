@@ -185,6 +185,20 @@ public class Utils {
 		List<List<String>> wordsWithSynonyms = new ArrayList<List<String>>();
 		for (int i = 0; i < words.size(); i++) {
 			wordsWithSynonyms.add(new ArrayList<String>());
+			if (words.get(i).equals("generator")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("author").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("biographer").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("creator").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("producer").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("writer").toLowerCase());
+			}
+			if (words.get(i).equals("squad") || words.get(i).equals("team")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("traded").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("signed").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("asigned").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("play").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("team").toLowerCase());
+			}
 			if (words.get(i).equals("birthplace")) {
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("born").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("nascence place").toLowerCase());
@@ -196,7 +210,7 @@ public class Utils {
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("died").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("last place").toLowerCase());
 			}
-			if (words.get(i).equals("half")) {
+			if (words.get(i).equals("half") || words.get(i).equals("spouse")) {
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("partner").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("boyfriend").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("girlfriend").toLowerCase());
@@ -219,9 +233,24 @@ public class Utils {
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("earned").toLowerCase());
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("received").toLowerCase());
 			}
+			if (words.get(i).equals("stars")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("starring").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("actor").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("acting").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("play").toLowerCase());
+			}
 
-			for (String st : synonymDictionary.getSynonyms(words.get(i), type))
-				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(st).toLowerCase().replaceAll("_", " "));
+			if (words.get(i).equals("subsidiary") || words.get(i).equals("subordinate")) {
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("owned").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("bought by").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("purchased").toLowerCase());
+				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars("acquired").toLowerCase());
+			} else {
+				for (String st : synonymDictionary.getSynonyms(words.get(i), type)) {
+					if (!wordsWithSynonyms.get(i).contains(Utils.replaceSpecialChars(st).toLowerCase().replaceAll("_", " ")))
+						wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(st).toLowerCase().replaceAll("_", " "));
+				}
+			}
 			if (!wordsWithSynonyms.get(i).contains(Utils.replaceSpecialChars(words.get(i)).toLowerCase()))
 				wordsWithSynonyms.get(i).add(Utils.replaceSpecialChars(words.get(i)).toLowerCase().replaceAll("_", " "));
 		}
